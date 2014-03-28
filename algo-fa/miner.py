@@ -1,11 +1,10 @@
-from datetime import datetime
 import requests
 
 
 HISTORICAL_DATA_API_URL_TEMPLATE = "http://ichart.yahoo.com/table.csv?s={symbol}&a={startmonth}&b={startday}&c={startyear}&d={endmonth}&e={endday}&f={endyear}&g=m&ignore=.csv"
 SGX_SUFFIX = "SI"
 
-def get_abcdef(start_date, end_date):
+def _get_abcdef(start_date, end_date):
 	return {
 		'startmonth': start_date.month - 1,
 		'startday': start_date.day,
@@ -16,15 +15,17 @@ def get_abcdef(start_date, end_date):
 	}
 
 def get_historical_data(symbols, start_date, end_date):
-	abcdef = get_abcdef(start_date, end_date)
+	"""	Returns {"symbol": "historical data in csv string"}:
 
+		>>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
+		{"C6L": "...", "ZZZZZZ": ''}
+	"""
+	abcdef = _get_abcdef(start_date, end_date)
+
+	result = {}
 	for s in symbols:
 		url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=s + '.' + SGX_SUFFIX, **abcdef)
 		r = requests.get(url)
-		print(s)
-		print(r.text)
+		result[s] = r.text if r.status_code == 200 else ''
 
-symbols = ("C6L", "J7X",)# "S53", "C52", "N03", "Z74", "CC3", "B2F")
-start_date = datetime(2004, 3, 1)
-end_date = datetime(2014, 3, 1)
-get_historical_data(symbols, start_date, end_date)
+	return result
