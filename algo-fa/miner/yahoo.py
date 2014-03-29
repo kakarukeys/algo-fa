@@ -46,15 +46,16 @@ def construct_yql(symbols, table, timeframe):
 
 	return yql
 
-def get_financial_data(symbols, table_name):
+def get_financial_data(symbols, table_name, timeframe):
 	"""	Returns {"symbol": financial data json object}:
 		symbols: ("C6L", "ZZZZZZ",)
 		table_name: any string in FINANCIAL_TABLE_NAMES
+		timeframe: "annual" or "quarterly"
 	"""
 	yql = construct_yql(
 		symbols,
 		"yahoo.finance." + table_name,
-		None if table_name == "keystats" else "annual"
+		None if table_name == "keystats" else timeframe
 	)
 	params = {
 		"q": yql,
