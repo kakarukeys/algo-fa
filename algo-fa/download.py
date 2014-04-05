@@ -4,6 +4,9 @@ import os
 from miner import yahoo, wsj
 from archive import dump
 
+
+"""Download all the data from internet to archive"""
+
 symbols = ("C6L", "J7X", "S53", "C52", "N03", "Z74", "CC3", "B2F")
 start_date = datetime(2004, 3, 1)
 end_date = datetime(2014, 3, 1)
