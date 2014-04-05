@@ -29,9 +29,7 @@ VALUE_UNITS = {
 }
 
 def load_historical_data_single_symbol(archive_directory, symbol, columns=None):
-	""" Returns a DataFrame object containing historical data of <symbol> with <columns>, loaded from archive.
-		archive_directory: archive directory path
-		symbol: stock symbol
+	""" Returns a DataFrame object containing historical data of <symbol> with <columns>, loaded from <archive_directory>.
 		columns: a collection of column names as defined in HISTORICAL_DATA_COLUMNS, None - include all.
 	"""
 	filepath = os.path.join(archive_directory, "yahoo/historicaldata", symbol + ".csv")
@@ -43,9 +41,8 @@ def load_historical_data_single_symbol(archive_directory, symbol, columns=None):
 		return read_csv(f, dtype=HISTORICAL_DATA_COLUMNS, index_col=0, parse_dates=True, usecols=columns)
 
 def load_historical_data(archive_directory, symbols, columns=None):
-	""" Returns a Panel object containing historical data of <symbols> with <columns>, loaded from archive.
-		archive_directory: archive directory path
-		symbol: a collection of stock symbols
+	""" Returns a Panel object containing historical data of <symbols> with <columns>, loaded from <archive_directory>.
+		symbols: a collection of stock symbols
 		columns: a collection of column names as defined in HISTORICAL_DATA_COLUMNS, None - include all.
 	"""
 	return pd.Panel({s: load_historical_data_single_symbol(archive_directory, s, columns) for s in symbols})
@@ -103,10 +100,8 @@ def preprocess(obj, extract_columns):
 			yield column_name, [parse_value(v) for v in values]
 
 def load_financial_data_single_symbol(archive_directory, report_type, symbol, columns=None):
-	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from archive.
-		archive_directory: archive directory path
-		report_type: "balance-sheet", "cash-flow" or "income-statement",
-		symbol: stock symbol
+	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from <archive_directory>.
+		report_type: report type as defined in miner.wsj.FINANCIAL_REPORT_TYPES
 		columns: a collection of column names as defined in the json file, None - include all.
 	"""
 	filepath = os.path.join(archive_directory, "wsj", report_type, symbol + ".json")

@@ -3,7 +3,7 @@ import os
 
 
 def write_file(directory, symbol, datatype, obj):
-    """ Writes <obj> to a file <symbol>.<datatyle> in <directory>.
+    """ Writes <obj> to a file <symbol>.<datatype> in <directory>.
         datatype is either "csv" or "json".
     """
     filepath = os.path.join(directory, symbol + '.' + datatype)
