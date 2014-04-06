@@ -1,19 +1,9 @@
-from datetime import datetime
-import os
-
 from miner import yahoo, wsj
 from archive import dump
+from settings import *
 
 
 """Download all the data from internet to archive"""
-
-symbols = ("C6L", "J7X", "S53", "C52", "N03", "Z74", "CC3", "B2F")
-start_date = datetime(2004, 3, 1)
-end_date = datetime(2014, 3, 1)
-
-archive_directory = "/home/kakarukeys/ownCloud/Fundamental Analysis project/archive"
-yahoo_archive_directory = os.path.join(archive_directory, "yahoo")
-wsj_archive_directory = os.path.join(archive_directory, "wsj")
 
 if __name__ == "__main__":
 	data = yahoo.get_historical_data(symbols, start_date, end_date)

@@ -2,10 +2,13 @@ import json, os, re
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from functools import partial
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 from pandas.io.parsers import read_csv
+
+from miner.wsj import FINANCIAL_REPORT_TYPES
 
 
 HISTORICAL_DATA_COLUMNS = {
@@ -28,7 +31,7 @@ VALUE_UNITS = {
 	"billions": 1000000000,
 }
 
-def load_historical_data_single_symbol(archive_directory, symbol, columns=None):
+def load_historical_data(archive_directory, symbol, columns=None):
 	""" Returns a DataFrame object containing historical data of <symbol> with <columns>, loaded from <archive_directory>.
 		columns: a collection of column names as defined in HISTORICAL_DATA_COLUMNS, None - include all.
 	"""
@@ -38,14 +41,17 @@ def load_historical_data_single_symbol(archive_directory, symbol, columns=None):
 		columns = ["Date"] + list(columns)
 
 	with open(filepath) as f:
-		return read_csv(f, dtype=HISTORICAL_DATA_COLUMNS, index_col=0, parse_dates=True, usecols=columns)
+		df = read_csv(f, dtype=HISTORICAL_DATA_COLUMNS, index_col=0, parse_dates=True, usecols=columns)
+	df.sort_index(inplace=True)
 
-def load_historical_data(archive_directory, symbols, columns=None):
+	return df
+
+def load_historical_data_multiple(archive_directory, symbols, columns=None):
 	""" Returns a Panel object containing historical data of <symbols> with <columns>, loaded from <archive_directory>.
 		symbols: a collection of stock symbols
 		columns: a collection of column names as defined in HISTORICAL_DATA_COLUMNS, None - include all.
 	"""
-	return pd.Panel({s: load_historical_data_single_symbol(archive_directory, s, columns) for s in symbols})
+	return pd.Panel({s: load_historical_data(archive_directory, s, columns) for s in symbols})
 
 def parse_top_remark(string):
 	""" top remark string -> month (integer) where fiscal year ends, currency, value unit (multiple of 1,000) """
@@ -69,14 +75,16 @@ def parse_value(string):
 	""" value string -> numpy-typed value """
 	if string == '-':
 		return np.nan
-	elif string.endswith('%'):
-		return np.float64(string.rstrip('%')) / 100
 	else:
-		s = string.replace(',', '').replace('(', '-').rstrip(')')
-		if '.' in string:
-			return np.float64(s)
+		s = string.replace(',','')
+		if s.endswith('%'):
+			return np.float64(s.rstrip('%')) / 100
 		else:
-			return np.int64(s)
+			s = s.replace('(', '-').rstrip(')')
+			if '.' in s:
+				return np.float64(s)
+			else:
+				return np.int64(s)
 
 def preprocess(obj, extract_columns):
 	""" Preprocesses <obj>, parses the values, extracts columns in <extract_columns>
@@ -95,13 +103,18 @@ def preprocess(obj, extract_columns):
 	assert first_row[0] == "periods"
 	yield "Date", [calc_date(int(d)) for d in first_row[1]]
 
+	counter = defaultdict(int)
 	for column_name, values in obj["data"][1:]:
 		if extract_columns is None or column_name in extract_columns:
-			yield column_name, [parse_value(v) for v in values]
+			# append number to duplicate column names
+			counter[column_name] += 1
+			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
 
-def load_financial_data_single_symbol(archive_directory, report_type, symbol, columns=None):
+			yield column_name + suffix, [parse_value(v) for v in values]
+
+def load_financial_data(archive_directory, report_type, symbol, columns=None):
 	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from <archive_directory>.
-		report_type: report type as defined in miner.wsj.FINANCIAL_REPORT_TYPES
+		report_type: report type as defined in FINANCIAL_REPORT_TYPES
 		columns: a collection of column names as defined in the json file, None - include all.
 	"""
 	filepath = os.path.join(archive_directory, "wsj", report_type, symbol + ".json")
@@ -111,7 +124,8 @@ def load_financial_data_single_symbol(archive_directory, report_type, symbol, co
 
 	extract_columns = None if columns is None else set(columns)
 
-	df = pd.DataFrame.from_items(preprocess(j, extract_columns))
+	df = pd.DataFrame.from_items(list(preprocess(j, extract_columns)))
 	df.set_index("Date", inplace=True)
+	df.sort_index(inplace=True)
 
 	return df
