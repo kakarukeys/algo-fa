@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from pandas.io.parsers import read_csv
 
-from miner.wsj import FINANCIAL_REPORT_TYPES
+from .miner.wsj import FINANCIAL_REPORT_TYPES
 
 
 HISTORICAL_DATA_COLUMNS = {

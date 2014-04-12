@@ -1,9 +1,10 @@
-from miner import yahoo, wsj
-from archive import dump
+from fa.miner import yahoo, wsj
+from fa.archive import dump
+
 from settings import *
 
 
-"""Download all the data from internet to archive"""
+""" Download all the data from internet to archive """
 
 if __name__ == "__main__":
 	data = yahoo.get_historical_data(symbols, start_date, end_date)
