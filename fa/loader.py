@@ -54,7 +54,7 @@ def load_historical_data_multiple(archive_directory, symbols, columns=None):
 	return pd.Panel({s: load_historical_data(archive_directory, s, columns) for s in symbols})
 
 def parse_top_remark(string):
-	""" top remark string -> month (integer) where fiscal year ends, currency, value unit (multiple of 1,000) """
+	""" top remark string -> month (integer) where fiscal year ends, currency (string), value unit (multiple of 1,000) """
 	result = TOP_REMARK_RE.match(string)
 
 	end_month = result.group("fiscal_year_end_month")
@@ -87,7 +87,7 @@ def parse_value(string):
 				return np.int64(s)
 
 def preprocess(obj, extract_columns):
-	""" Preprocesses <obj>, parses the values, extracts columns in <extract_columns>
+	""" Preprocesses <obj>, extracts columns in <extract_columns>, parses the values
 		yields column name, list of parsed values
 
 		obj: object parsed from json.
@@ -115,7 +115,7 @@ def preprocess(obj, extract_columns):
 def load_financial_data(archive_directory, report_type, symbol, columns=None):
 	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from <archive_directory>.
 		report_type: report type as defined in FINANCIAL_REPORT_TYPES
-		columns: a collection of column names as defined in the json file, None - include all.
+		columns: a collection of column names as defined in the actual json file in archive, None - include all.
 	"""
 	filepath = os.path.join(archive_directory, "wsj", report_type, symbol + ".json")
 

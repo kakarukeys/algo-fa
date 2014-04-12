@@ -6,7 +6,7 @@ HISTORICAL_DATA_API_URL_TEMPLATE = "http://ichart.yahoo.com/table.csv?s={symbol}
 YQL_TEMPLATE_1 = "SELECT * FROM {table} WHERE symbol IN {symbols}"
 YQL_TEMPLATE_2 = " AND timeframe='{timeframe}'"
 YQL_API_URL = "http://query.yahooapis.com/v1/public/yql"
-FINANCIAL_TABLE_NAMES = ("balancesheet", "cashflow", "incomestatement", "keystats")
+FINANCIAL_REPORT_TYPES = ("balancesheet", "cashflow", "incomestatement", "keystats")
 
 def get_full_symbol(s):
 	return s + '.' + SGX_SUFFIX
@@ -46,16 +46,16 @@ def construct_yql(symbols, table, timeframe):
 
 	return yql
 
-def get_financial_data(symbols, table_name, timeframe):
-	"""	Returns {"symbol": financial data json object}:
-		symbols: ("C6L", "ZZZZZZ",)
-		table_name: any string in FINANCIAL_TABLE_NAMES
+def get_financial_data(symbols, timeframe, report_type):
+	"""	Returns {"symbol": financial data in a dictionary}:
+		symbols: e.g. ("C6L", "B9K",)
 		timeframe: "annual" or "quarterly"
+		report_type: any string in FINANCIAL_REPORT_TYPES
 	"""
 	yql = construct_yql(
 		symbols,
-		"yahoo.finance." + table_name,
-		None if table_name == "keystats" else timeframe
+		"yahoo.finance." + report_type,
+		None if report_type == "keystats" else timeframe
 	)
 	params = {
 		"q": yql,
@@ -64,7 +64,7 @@ def get_financial_data(symbols, table_name, timeframe):
 	}
 	r = requests.get(YQL_API_URL, params=params)
 
-	results = r.json()["query"]["results"]["stats" if table_name == "keystats" else table_name]
+	results = r.json()["query"]["results"]["stats" if report_type == "keystats" else report_type]
 
 	if isinstance(results, dict):
 		results = [results]

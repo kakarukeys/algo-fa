@@ -10,7 +10,7 @@ def scrape_row(tr):
 
 def get_financial_data(symbol, timeframe, report_type):
 	""" Returns financial data in a dictionary.
-		symbol: "C6L"
+		symbol: e.g. "C6L"
 		timeframe: "annual" or "quarter"
 		report_type: any string in FINANCIAL_REPORT_TYPES
 	"""
