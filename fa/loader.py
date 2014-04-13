@@ -57,11 +57,14 @@ def parse_top_remark(string):
 	""" top remark string -> month (integer) where fiscal year ends, currency (string), value unit (multiple of 1,000) """
 	result = TOP_REMARK_RE.match(string)
 
-	end_month = result.group("fiscal_year_end_month")
-	currency = result.group("currency")
-	value_unit = result.group("value_unit")
+	if result:
+		end_month = result.group("fiscal_year_end_month")
+		currency = result.group("currency")
+		value_unit = result.group("value_unit")
 
-	return datetime.strptime(end_month, "%B").month, currency.upper(), VALUE_UNITS[value_unit.lower()]
+		return datetime.strptime(end_month, "%B").month, currency.upper(), VALUE_UNITS[value_unit.lower()]
+	else:
+		raise ValueError("Top remark cannot be parsed.")
 
 def calc_financial_data_date(fiscal_year_end_month, period):
 	""" Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
