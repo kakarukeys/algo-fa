@@ -2,7 +2,7 @@ import requests
 
 
 SGX_SUFFIX = "SI"
-HISTORICAL_DATA_API_URL_TEMPLATE = "http://ichart.yahoo.com/table.csv?s={symbol}&a={startmonth}&b={startday}&c={startyear}&d={endmonth}&e={endday}&f={endyear}&g=m&ignore=.csv"
+HISTORICAL_DATA_API_URL_TEMPLATE = "http://ichart.yahoo.com/table.csv?s={symbol}&a={startmonth}&b={startday}&c={startyear}&d={endmonth}&e={endday}&f={endyear}&g=d&ignore=.csv"
 YQL_TEMPLATE_1 = "SELECT * FROM {table} WHERE symbol IN {symbols}"
 YQL_TEMPLATE_2 = " AND timeframe='{timeframe}'"
 YQL_API_URL = "http://query.yahooapis.com/v1/public/yql"

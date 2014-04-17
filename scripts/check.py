@@ -20,7 +20,7 @@ def print_missing_dates(result):
 def print_missing_values(result):
     print("missing values: ", end='')
     if result.empty:
-        print("No missing values.")
+        print("No missing value.")
     else:
         print()
         print(result)
@@ -54,9 +54,9 @@ if __name__ == "__main__":
             else:
                 raise
         else:
-            print_missing_dates(check_for_missing_date(df, np.timedelta64(34, 'D')))
+            print_missing_dates(check_for_missing_date(df, np.timedelta64(5, 'D')))
             print_missing_values(check_for_missing_value(df))
-            print_discontinuity(check_for_discontinuity(df, 3))
+            print_discontinuity(check_for_discontinuity(df, 6))
 
         for report_type in FINANCIAL_REPORT_TYPES:
             print(report_type)
