@@ -31,6 +31,17 @@ VALUE_UNITS = {
 	"billions": 1000000000,
 }
 
+# these columns have value_unit 1
+# percentage columns need not be listed here, because they are auto-recognized to have value_unit 1
+UNO_VALUE_UNIT_COLUMNS = set([
+	"EPS (Basic)",
+	"EPS (Diluted)",
+	"Asset Turnover",
+	"Current Ratio",
+	"Quick Ratio",
+	"Cash Ratio"
+])
+
 def load_historical_data(archive_directory, symbol, columns=None):
 	""" Returns a DataFrame object containing historical data of <symbol> with <columns>, loaded from <archive_directory>.
 		columns: a collection of column names as defined in HISTORICAL_DATA_COLUMNS, None - include all.
@@ -74,8 +85,10 @@ def calc_financial_data_date(fiscal_year_end_month, period):
 	d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
 	return np.datetime64(d)
 
-def parse_value(string):
-	""" value string -> numpy-typed value """
+def parse_value(string, value_unit):
+	""" value string -> numpy-typed value
+		value_unit: the resultant value except percentage will be multiplifed by it
+	"""
 	if string == '-':
 		return np.nan
 	else:
@@ -85,9 +98,23 @@ def parse_value(string):
 		else:
 			s = s.replace('(', '-').rstrip(')')
 			if '.' in s:
-				return np.float64(s)
+				return np.float64(s) * value_unit
 			else:
-				return np.int64(s)
+				return np.int64(s) * value_unit
+
+def deduplicate_column_name(data, extract_columns):
+	""" Yields (deduplicated column name, values) by iterating over <data> where column name is in <extract_columns>,
+		append incremental number to each duplicate column name.
+		data: a sequence of (column_name, values)
+		extract_columns: set of column name strings, None - extract all.
+	"""
+	counter = defaultdict(int)
+	for column_name, values in data:
+		if extract_columns is None or column_name in extract_columns:
+			counter[column_name] += 1
+
+			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
+			yield column_name + suffix, values
 
 def preprocess(obj, extract_columns):
 	""" Preprocesses <obj>, extracts columns in <extract_columns>, parses the values
@@ -106,14 +133,9 @@ def preprocess(obj, extract_columns):
 	assert first_row[0] == "periods"
 	yield "Date", [calc_date(int(d)) for d in first_row[1]]
 
-	counter = defaultdict(int)
-	for column_name, values in obj["data"][1:]:
-		if extract_columns is None or column_name in extract_columns:
-			# append number to duplicate column names
-			counter[column_name] += 1
-			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
-
-			yield column_name + suffix, [parse_value(v) for v in values]
+	for column_name, values in deduplicate_column_name(obj["data"][1:], extract_columns):
+		value_unit_to_use = 1 if column_name in UNO_VALUE_UNIT_COLUMNS else value_unit
+		yield column_name, [parse_value(v, value_unit_to_use) for v in values]
 
 def load_financial_data(archive_directory, report_type, symbol, columns=None):
 	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from <archive_directory>.

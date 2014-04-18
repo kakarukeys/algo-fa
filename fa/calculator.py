@@ -32,3 +32,7 @@ def derivative(frame, index_unit=1):
     delta_frame = delta(frame)
     delta_index = delta(frame.index.to_series())
     return delta_frame.div(delta_index / index_unit, axis=0)
+
+def translate_index(df, delta):
+    """ add <delta> to index of <df> """
+    return df.set_index(df.index + delta)

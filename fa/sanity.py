@@ -30,7 +30,7 @@ def check_for_discontinuity(df, tolerance):
 		tolerance: used in outlier test for first-order derivative, how many sigmas?
 	"""
 	if isinstance(df.index, DatetimeIndex):
-		index_unit = np.timedelta64(1, 'Y')
+		index_unit = np.timedelta64(365, 'D')	# doesn't matter what value, this is just for allowing the division to occur
 	else:
 		index_unit = 1
 
