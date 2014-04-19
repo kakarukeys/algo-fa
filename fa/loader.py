@@ -154,3 +154,9 @@ def load_financial_data(archive_directory, report_type, symbol, columns=None):
 	df.sort_index(inplace=True)
 
 	return df
+
+def load_financial_data_all(archive_directory, symbol, columns=None):
+	""" Returns {report_type: financial report DataFrame object} of <symbol> with <columns>, loaded from <archive_directory>.
+		columns: a collection of column names as defined in the actual json file in archive, None - include all.
+	"""
+	return {rt: load_financial_data(archive_directory, rt, symbol, columns) for rt in FINANCIAL_REPORT_TYPES}

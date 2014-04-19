@@ -4,7 +4,16 @@ import os
 
 """ Settings for the project """
 
-symbols = ("C6L", "J7X", "S53", "C52", "N03", "Z74", "CC3", "B2F")
+symbols = {
+	"C6L": "Singapore Airlines",
+	"J7X": "Tiger Airways",
+	"S53": "SMRT",
+	"C52": "ComfortDelGro",
+	"N03": "Neptune Orient Lines",
+	"Z74": "Singtel",
+	"CC3": "Starhub",
+	"B2F": "M1",
+}
 start_date = datetime(2004, 3, 1)
 end_date = datetime(2014, 3, 1)
 

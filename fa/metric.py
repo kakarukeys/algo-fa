@@ -54,9 +54,9 @@ class Metric(object):
 		conversion_factor = np.timedelta64(365, 'D') / (np.datetime64(end_date) - np.datetime64(start_date))
 		return ret * conversion_factor
 
-	def calc_pe_ratios(self, price_column="Close", eps_column="EPS (Basic)"):
+	def calc_pe_ratios(self, price_column="Adj Close", eps_column="EPS (Basic)"):
 		""" Returns the P/E Ratio of the stock at dates where the ratio is computable.
-			price_column: the column to get prices, default: "Close".
+			price_column: the column to get prices, default: "Adj Close".
 			eps_columm: the column to get EPS, default: "EPS (Basic)"
 		"""
 		eps = self.income_statement_lagged[eps_column]
