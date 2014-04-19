@@ -52,25 +52,25 @@ class Metric(object):
 			**kwargs
 		)
 
-	def calc_return(self, start_date, end_date, price_column="Adj Close"):
-		""" Returns the return of the stock if a buy market order is made on <start_date> and a sell market order is
-			made on <end_date>.
-			start_date, end_date: pd.Timestamp object
+	def calc_return(self, buy_date, sell_date, price_column="Adj Close"):
+		""" Returns the return of the stock if a buy market order is made on <buy_date> and a sell market order is
+			made on <sell_date>.
+			buy_date, sell_date: pd.Timestamp object
 			price_column: the column to get prices, default: "Adj Close".
 		"""
 		# use fillbackward here because a market order is executed as soon as a price is available
-		buy_price = self.historical_fillbackward.at[start_date, price_column]
-		sell_price = self.historical_fillbackward.at[end_date, price_column]
+		buy_price = self.historical_fillbackward.at[buy_date, price_column]
+		sell_price = self.historical_fillbackward.at[sell_date, price_column]
 		return sell_price / buy_price - 1
 
-	def calc_annual_return(self, start_date, end_date, price_column="Adj Close"):
-		""" Returns the annualized return of the stock if a buy market order is made on <start_date> and a sell market order is
-			made on <end_date>.
-			start_date, end_date: pd.Timestamp object
+	def calc_annual_return(self, buy_date, sell_date, price_column="Adj Close"):
+		""" Returns the annualized return of the stock if a buy market order is made on <buy_date> and a sell market order is
+			made on <sell_date>.
+			buy_date, sell_date: pd.Timestamp object
 			price_column: the column to get prices, default: "Adj Close".
 		"""
-		ret = self.calc_return(start_date, end_date, price_column)
-		conversion_factor = np.timedelta64(365, 'D') / (np.datetime64(end_date) - np.datetime64(start_date))
+		ret = self.calc_return(buy_date, sell_date, price_column)
+		conversion_factor = np.timedelta64(365, 'D') / (np.datetime64(sell_date) - np.datetime64(buy_date))
 		return ret * conversion_factor
 
 	def calc_pe_ratios(self, price_column="Adj Close", eps_column="EPS (Basic)"):
