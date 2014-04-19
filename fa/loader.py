@@ -33,14 +33,14 @@ VALUE_UNITS = {
 
 # these columns have value_unit 1
 # percentage columns need not be listed here, because they are auto-recognized to have value_unit 1
-UNO_VALUE_UNIT_COLUMNS = set([
+UNO_VALUE_UNIT_COLUMNS = {
 	"EPS (Basic)",
 	"EPS (Diluted)",
 	"Asset Turnover",
 	"Current Ratio",
 	"Quick Ratio",
 	"Cash Ratio"
-])
+}
 
 def load_historical_data(archive_directory, symbol, columns=None):
 	""" Returns a DataFrame object containing historical data of <symbol> with <columns>, loaded from <archive_directory>.

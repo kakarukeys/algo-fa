@@ -1,5 +1,6 @@
 import numpy as np
 from .calculator import translate_index
+from .loader import load_historical_data, load_financial_data_all
 
 
 class Metric(object):
@@ -32,6 +33,24 @@ class Metric(object):
 		self.balance_sheet_lagged = translate_index(balance_sheet, self.financial_report_preparation_lag)
 		self.income_statement_lagged = translate_index(income_statement, self.financial_report_preparation_lag)
 		self.cash_flow_lagged = translate_index(cash_flow, self.financial_report_preparation_lag)
+
+	@classmethod
+	def from_archive(cls, archive_directory, symbol, **kwargs):
+		""" Returns an object that is capable of calculating various metrics of the stock.
+			archive_directory: will load data from this directory to construct the object
+			symbol: e.g. "C6L"
+			Any extra keyword arguments will be passed to the constructor.
+		"""
+		historical_data = load_historical_data(archive_directory, symbol)
+		financial_data = load_financial_data_all(archive_directory, symbol)
+
+		return cls(
+			historical_data,
+			financial_data["balance-sheet"],
+			financial_data["income-statement"],
+			financial_data["cash-flow"],
+			**kwargs
+		)
 
 	def calc_return(self, start_date, end_date, price_column="Adj Close"):
 		""" Returns the return of the stock if a buy market order is made on <start_date> and a sell market order is
