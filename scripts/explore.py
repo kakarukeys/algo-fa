@@ -1,3 +1,5 @@
+from functools import reduce
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,11 +16,12 @@ pe_ratios_list = [m.calc_pe_ratios() for m in metrics]
 
 # figure 1
 fig = plt.figure(figsize=(12, 10))
+xticks = reduce(lambda a, b: a | b, [ts.index for ts in pe_ratios_list])
 
 with pd.plot_params.use('x_compat', True):
 	title = "P/E Ratio of stocks over Date\n"
 	for series, label in zip(pe_ratios_list, symbols.values()):
-		graph = series.plot(rot=0, label=label, legend=True, title=title)
+		graph = series.plot(label=label, legend=True, title=title, xticks=xticks)
 		graph.set_xlabel("Date")
 		graph.set_ylabel("P/E Ratio")
 
