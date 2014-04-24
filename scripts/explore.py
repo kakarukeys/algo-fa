@@ -11,6 +11,18 @@ from settings import archive_directory, symbols, end_date
 
 metrics = [Metric.from_archive(archive_directory, s) for s in symbols]
 pe_ratios_list = [m.calc_pe_ratios() for m in metrics]
+
+# figure 1
+fig = plt.figure(figsize=(12, 10))
+
+with pd.plot_params.use('x_compat', True):
+	title = "P/E Ratio of stocks over Date\n"
+	for series, label in zip(pe_ratios_list, symbols.values()):
+		graph = series.plot(rot=0, label=label, legend=True, title=title)
+		graph.set_xlabel("Date")
+		graph.set_ylabel("P/E Ratio")
+
+# figure 2
 buy_year = get_first_commonly_available_year(pe_ratios_list)
 
 pe_ratios_at_buy_year_list = [ts.loc[str(buy_year)] for ts in pe_ratios_list]
@@ -28,11 +40,12 @@ df = pd.DataFrame.from_dict({
 })
 
 title = "Annual Return of stocks bought at {0} sold at {1} over P/E Ratio\n".format(buy_year, sell_date.date())
-graph = df.plot(x="P/E Ratio", y="Annual Return (%)", kind="scatter", title=title)
+graph = df.plot(x="P/E Ratio", y="Annual Return (%)", kind="scatter", title=title, figsize=(12, 10))
 
 print_point_labels(df, graph, x="P/E Ratio", y="Annual Return (%)", label="Name")
 
 xbound = graph.get_xbound()
 graph.hlines(0, *xbound, color="red")
 
+# show all figures
 plt.show()
