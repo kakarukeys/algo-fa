@@ -73,11 +73,30 @@ class Metric(object):
 		conversion_factor = np.timedelta64(365, 'D') / (np.datetime64(sell_date) - np.datetime64(buy_date))
 		return ret * conversion_factor
 
-	def calc_pe_ratios(self, price_column="Adj Close", eps_column="EPS (Basic)"):
-		""" Returns the P/E Ratio of the stock at dates where the ratio is computable.
+	def calc_pe_ratio(self, date=None, price_column="Adj Close", eps_column="EPS (Basic)"):
+		""" Returns the P/E Ratio of the stock.
+			date: if passed, will return scalar value at it, else return series, default: None.
 			price_column: the column to get prices, default: "Adj Close".
 			eps_columm: the column to get EPS, default: "EPS (Basic)"
 		"""
-		eps = self.income_statement_lagged[eps_column]
-		pps = self.historical_fillforward.loc[eps.index, price_column]	# use fillforward here to avoid peeking into future
+		if date is None:
+			eps = self.income_statement_lagged[eps_column]
+			pps = self.historical_fillforward.loc[eps.index, price_column]	# use fillforward here to avoid peeking into future
+		else:
+			eps = self.income_statement_lagged.at[date, eps_column]
+			pps = self.historical_fillforward.at[date, price_column]
+
 		return pps / eps
+
+	def calc_gross_profit_margin(self, date=None):
+		""" Returns the Gross Profit Margin of the stock.
+			date: if passed, will return scalar value at it, else return series, default: None.
+		"""
+		if date is None:
+			gross_profit = self.income_statement_lagged["Gross Income"]
+			revenue = self.income_statement_lagged["Sales/Revenue"]
+		else:
+			gross_profit = self.income_statement_lagged.at[date, "Gross Income"]
+			revenue = self.income_statement_lagged.at[date, "Sales/Revenue"]
+
+		return gross_profit / revenue
