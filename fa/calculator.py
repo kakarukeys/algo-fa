@@ -6,7 +6,7 @@ def delta(frame):
         1    6
         dtype: float64
     """
-    return (frame.shift(-1) - frame).iloc[:-1]
+    return frame.diff().shift(-1).iloc[:-1]
 
 forward_delta = delta
 
@@ -18,7 +18,7 @@ def backward_delta(frame):
         4    6
         dtype: float64
     """
-    return (frame - frame.shift(1)).iloc[1:]
+    return frame.diff().iloc[1:]
 
 def derivative(frame, index_unit=1):
     """ Returns first-order derivative of frame.
