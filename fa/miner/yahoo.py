@@ -8,10 +8,10 @@ YQL_TEMPLATE_2 = " AND timeframe='{timeframe}'"
 YQL_API_URL = "http://query.yahooapis.com/v1/public/yql"
 FINANCIAL_REPORT_TYPES = ("balancesheet", "cashflow", "incomestatement", "keystats")
 
-def get_full_symbol(s):
+def _get_full_symbol(s):
 	return s + '.' + SGX_SUFFIX
 
-def get_abcdef(start_date, end_date):
+def _get_abcdef(start_date, end_date):
 	return {
 		'startmonth': start_date.month - 1,
 		'startday': start_date.day,
@@ -27,18 +27,18 @@ def get_historical_data(symbols, start_date, end_date):
 		>>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
 		{"C6L": "...", "ZZZZZZ": ''}
 	"""
-	abcdef = get_abcdef(start_date, end_date)
+	abcdef = _get_abcdef(start_date, end_date)
 
 	result = {}
 	for s in symbols:
-		url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=get_full_symbol(s), **abcdef)
+		url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=_get_full_symbol(s), **abcdef)
 		r = requests.get(url)
 		result[s] = r.text if r.status_code == 200 else ''
 
 	return result
 
-def construct_yql(symbols, table, timeframe):
-	full_symbols = '({0})'.format(','.join(repr(get_full_symbol(s)) for s in symbols))
+def _construct_yql(symbols, table, timeframe):
+	full_symbols = '({0})'.format(','.join(repr(_get_full_symbol(s)) for s in symbols))
 	yql = YQL_TEMPLATE_1.format(table=table, symbols=full_symbols)
 
 	if timeframe:
@@ -52,7 +52,7 @@ def get_financial_data(symbols, timeframe, report_type):
 		timeframe: "annual" or "quarterly"
 		report_type: any string in FINANCIAL_REPORT_TYPES
 	"""
-	yql = construct_yql(
+	yql = _construct_yql(
 		symbols,
 		"yahoo.finance." + report_type,
 		None if report_type == "keystats" else timeframe

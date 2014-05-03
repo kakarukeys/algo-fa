@@ -17,8 +17,8 @@ class TestWSJ(unittest.TestCase):
 
         with patch("fa.miner.wsj.requests.get", MagicMock(return_value=MockResponse())) as mock_get:
             html = wsj.get_report_html("C6L", "annual", "balance-sheet")
+            mock_get.assert_called_once_with("http://quotes.wsj.com/SG/C6L/financials/annual/balance-sheet")
 
-        mock_get.assert_called_once_with("http://quotes.wsj.com/SG/C6L/financials/annual/balance-sheet")
         self.assertEqual(html, "report text")
 
     def test_get_financial_data(self):
@@ -28,8 +28,8 @@ class TestWSJ(unittest.TestCase):
 
         with patch("fa.miner.wsj.get_report_html", MagicMock(return_value=html)) as mock_get_report_html:
             result = wsj.get_financial_data("C6L", "annual", "balance-sheet")
+            mock_get_report_html.assert_called_once_with("C6L", "annual", "balance-sheet")
 
-        mock_get_report_html.assert_called_once_with("C6L", "annual", "balance-sheet")
         self.assertEqual(result["symbol"], "C6L")
         self.assertEqual(result["timeframe"], "annual")
         self.assertEqual(result["report_type"], "balance-sheet")
