@@ -61,7 +61,7 @@ class Metric(object):
         return cls(*args, **kwargs)
 
     def at(self, date):
-        """ Fixes the internal date to <date> to be used for calculation of metrics. """
+        """ Fixes the internal date to <date> (pd.Timestamp object) to be used for calculation of metrics. """
         dm = DatedMetric(date)
         dm.__dict__.update(self.__dict__)   # bring over all attributes
         return dm
