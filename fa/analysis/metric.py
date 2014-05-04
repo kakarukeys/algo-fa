@@ -1,6 +1,6 @@
 import numpy as np
-from .calculator import translate_index
-from .loader import load_historical_data, load_financial_data_all
+from fa.calculator import translate_index
+from fa.archive.load import load_historical_data, load_financial_data_all
 
 
 PROFIT_MARGIN_KINDS = ("gross", "operating", "pretax", "net")

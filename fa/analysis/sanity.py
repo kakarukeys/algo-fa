@@ -1,7 +1,7 @@
 import numpy as np
 from pandas.tseries.index import DatetimeIndex
 
-from .calculator import backward_delta, derivative
+from fa.calculator import backward_delta, derivative
 
 
 def check_for_missing_date(df, tolerance):
