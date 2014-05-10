@@ -36,3 +36,7 @@ def derivative(frame, index_unit=1):
 def translate_index(df, delta):
     """ add <delta> to index of <df> """
     return df.set_index(df.index + delta)
+
+def get_deviations(frame):
+    """ Returns how many sigmas does each value deviate from the mean of the column """
+    return (frame - frame.mean()) / frame.std()

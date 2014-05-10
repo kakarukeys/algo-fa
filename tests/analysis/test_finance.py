@@ -6,7 +6,6 @@ import numpy as np
 
 from fa.analysis.finance import Metric, DatedMetric
 from fa.archive.load import FINANCIAL_REPORT_TYPES
-
 from tests.util import PandasTestCase
 
 
@@ -104,7 +103,7 @@ class TestMetric(PandasTestCase):
 
         # because of 1 day financial_report_preparation_lag
         expected_index = pd.to_datetime(["2012-01-02", "2012-01-03", "2012-01-04"])
-        self.assertFrameEqual(gross_profit_margin, pd.Series([20, 25, 30], index=expected_index))
+        self.assertFrameEqual(gross_profit_margin, pd.Series([20, 25, 30], index=expected_index), check_dtype=False)
         self.assertFrameEqual(operating_profit_margin, pd.Series([10, 14, 17.5], index=expected_index))
 
 class TestDatedMetric(unittest.TestCase):
