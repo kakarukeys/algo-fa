@@ -77,17 +77,23 @@ def parse_top_remark(string):
 	else:
 		raise ValueError("Top remark cannot be parsed.")
 
-def calc_financial_data_date(fiscal_year_end_month, period):
-	""" Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
-		fiscal_year_end_month: 1~12
-		period: e.g. 2013
+def deduplicate_column_name(data, extract_columns):
+	""" Yields (deduplicated column name, values) by iterating over <data> where column name is in <extract_columns>,
+		append _incremental number to each duplicate column name.
+		data: a sequence of (column_name, values)
+		extract_columns: set of column name strings, None - extract all.
 	"""
-	d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
-	return np.datetime64(d)
+	counter = defaultdict(int)
+	for column_name, values in data:
+		if extract_columns is None or column_name in extract_columns:
+			counter[column_name] += 1
+
+			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
+			yield column_name + suffix, values
 
 def parse_value(string, value_unit):
 	""" value string -> numpy-typed value
-		value_unit: the resultant value except percentage will be multiplifed by it
+		value_unit: a number which the resultant value except percentage will be multiplifed by
 	"""
 	if string == '-':
 		return np.nan
@@ -102,19 +108,13 @@ def parse_value(string, value_unit):
 			else:
 				return np.int64(s) * value_unit
 
-def deduplicate_column_name(data, extract_columns):
-	""" Yields (deduplicated column name, values) by iterating over <data> where column name is in <extract_columns>,
-		append incremental number to each duplicate column name.
-		data: a sequence of (column_name, values)
-		extract_columns: set of column name strings, None - extract all.
+def _calc_financial_data_date(fiscal_year_end_month, period):
+	""" Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
+		fiscal_year_end_month: 1~12
+		period: e.g. 2013
 	"""
-	counter = defaultdict(int)
-	for column_name, values in data:
-		if extract_columns is None or column_name in extract_columns:
-			counter[column_name] += 1
-
-			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
-			yield column_name + suffix, values
+	d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
+	return np.datetime64(d)
 
 def preprocess(obj, extract_columns):
 	""" Preprocesses <obj>, extracts columns in <extract_columns>, parses the values
@@ -127,7 +127,7 @@ def preprocess(obj, extract_columns):
 
 	fiscal_year_end_month, currency, value_unit = parse_top_remark(obj["top_remark"])
 	assert currency == "SGD"
-	calc_date = partial(calc_financial_data_date, fiscal_year_end_month)
+	calc_date = partial(_calc_financial_data_date, fiscal_year_end_month)
 
 	first_row = obj["data"][0]
 	assert first_row[0] == "periods"
