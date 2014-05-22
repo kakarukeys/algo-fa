@@ -14,8 +14,10 @@ def write_file(directory, symbol, datatype, obj):
             json.dump(obj, f)
 
 def dump(data, archive_directory, table_name, datatype):
-    """ Writes each key,value pair of <data> of data type <datatype> to <archive_directory> under subdirectory <table_name>.
-        data: {"symbol": data object}
+    """ Writes each value of <data> to <archive_directory>/<table_name>, under symbol name the key of the value,
+        data type <datatype>.
+
+        data: {"symbol": data_object}
         datatype is either "csv" or "json".
     """
     directory = os.path.join(archive_directory, table_name)
