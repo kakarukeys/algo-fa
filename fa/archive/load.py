@@ -64,7 +64,7 @@ def load_historical_data_multiple(archive_directory, symbols, columns=None):
 	"""
 	return pd.Panel({s: load_historical_data(archive_directory, s, columns) for s in symbols})
 
-def parse_top_remark(string):
+def _parse_top_remark(string):
 	""" top remark string -> month (integer) where fiscal year ends, currency (string), value unit (multiple of 1,000) """
 	result = TOP_REMARK_RE.match(string)
 
@@ -77,7 +77,15 @@ def parse_top_remark(string):
 	else:
 		raise ValueError("Top remark cannot be parsed.")
 
-def deduplicate_column_name(data, extract_columns):
+def _calc_financial_data_date(fiscal_year_end_month, period):
+	""" Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
+		fiscal_year_end_month: 1~12
+		period: e.g. 2013
+	"""
+	d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
+	return np.datetime64(d)
+
+def _deduplicate_column_name(data, extract_columns):
 	""" Yields (deduplicated column name, values) by iterating over <data> where column name is in <extract_columns>,
 		append _incremental number to each duplicate column name.
 		data: a sequence of (column_name, values)
@@ -91,7 +99,7 @@ def deduplicate_column_name(data, extract_columns):
 			suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
 			yield column_name + suffix, values
 
-def parse_value(string, value_unit):
+def _parse_value(string, value_unit):
 	""" value string -> numpy-typed value
 		value_unit: a number which the resultant value except percentage will be multiplifed by
 	"""
@@ -108,15 +116,7 @@ def parse_value(string, value_unit):
 			else:
 				return np.int64(s) * value_unit
 
-def _calc_financial_data_date(fiscal_year_end_month, period):
-	""" Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
-		fiscal_year_end_month: 1~12
-		period: e.g. 2013
-	"""
-	d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
-	return np.datetime64(d)
-
-def preprocess(obj, extract_columns):
+def _preprocess(obj, extract_columns):
 	""" Preprocesses <obj>, extracts columns in <extract_columns>, parses the values
 		yields column name, list of parsed values
 
@@ -125,7 +125,7 @@ def preprocess(obj, extract_columns):
 	"""
 	assert obj["timeframe"] == "annual"
 
-	fiscal_year_end_month, currency, value_unit = parse_top_remark(obj["top_remark"])
+	fiscal_year_end_month, currency, value_unit = _parse_top_remark(obj["top_remark"])
 	assert currency == "SGD"
 	calc_date = partial(_calc_financial_data_date, fiscal_year_end_month)
 
@@ -133,9 +133,9 @@ def preprocess(obj, extract_columns):
 	assert first_row[0] == "periods"
 	yield "Date", [calc_date(int(d)) for d in first_row[1]]
 
-	for column_name, values in deduplicate_column_name(obj["data"][1:], extract_columns):
+	for column_name, values in _deduplicate_column_name(obj["data"][1:], extract_columns):
 		value_unit_to_use = 1 if column_name in UNO_VALUE_UNIT_COLUMNS else value_unit
-		yield column_name, [parse_value(v, value_unit_to_use) for v in values]
+		yield column_name, [_parse_value(v, value_unit_to_use) for v in values]
 
 def load_financial_data(archive_directory, report_type, symbol, columns=None):
 	""" Returns a DataFrame object containing <report_type> financial data of <symbol> with <columns>, loaded from <archive_directory>.
@@ -149,7 +149,7 @@ def load_financial_data(archive_directory, report_type, symbol, columns=None):
 
 	extract_columns = None if columns is None else set(columns)
 
-	df = pd.DataFrame.from_items(list(preprocess(j, extract_columns)))
+	df = pd.DataFrame.from_items(list(_preprocess(j, extract_columns)))
 	df.set_index("Date", inplace=True)
 	df.sort_index(inplace=True)
 

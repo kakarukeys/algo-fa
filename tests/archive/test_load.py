@@ -81,33 +81,33 @@ class TestLoad(PandasTestCase):
 
     def test_parse_top_remark(self):
         self.assertEqual(
-            load.parse_top_remark("Fiscal year is April-March. All values sgd Thousands."),
+            load._parse_top_remark("Fiscal year is April-March. All values sgd Thousands."),
             (3, "SGD", 1000)
         )
         self.assertEqual(
-            load.parse_top_remark("Fiscal year is April-March. All values SGD Millions."),
+            load._parse_top_remark("Fiscal year is April-March. All values SGD Millions."),
             (3, "SGD", 1000000)
         )
         self.assertEqual(
-            load.parse_top_remark("Fiscal year is April-March. All values SGD Billions."),
+            load._parse_top_remark("Fiscal year is April-March. All values SGD Billions."),
             (3, "SGD", 1000000000)
         )
         self.assertRaises(
             ValueError,
-            load.parse_top_remark,
+            load._parse_top_remark,
             "abcdef"
         )
 
     def test_parse_value(self):
-        parsed = load.parse_value("3,456", value_unit=10)
+        parsed = load._parse_value("3,456", value_unit=10)
 
-        self.assertTrue(np.isnan(load.parse_value('-', 10)))
-        self.assertEqual(load.parse_value("25%", 10), 0.25)
+        self.assertTrue(np.isnan(load._parse_value('-', 10)))
+        self.assertEqual(load._parse_value("25%", 10), 0.25)
         self.assertEqual(parsed, 34560)
         self.assertIsInstance(parsed, np.int64)
-        self.assertEqual(load.parse_value("(3,456)", 10), -34560)
-        self.assertEqual(load.parse_value("3,456.78", 10), 34567.8)
-        self.assertEqual(load.parse_value("(3,456.78)", 10), -34567.8)
+        self.assertEqual(load._parse_value("(3,456)", 10), -34560)
+        self.assertEqual(load._parse_value("3,456.78", 10), 34567.8)
+        self.assertEqual(load._parse_value("(3,456.78)", 10), -34567.8)
 
     def test_deduplicate_column_name(self):
         data = (
@@ -119,7 +119,7 @@ class TestLoad(PandasTestCase):
             ("Tax", [6]),
         )
 
-        self.assertEqual(list(load.deduplicate_column_name(data, extract_columns=None)), [
+        self.assertEqual(list(load._deduplicate_column_name(data, extract_columns=None)), [
             ("Sales", [1]),
             ("Cost", [2]),
             ("Cost_2", [3]),
@@ -127,7 +127,7 @@ class TestLoad(PandasTestCase):
             ("Cost_3", [5]),
             ("Tax_2", [6]),
         ])
-        self.assertEqual(list(load.deduplicate_column_name(data, {"Sales"})), [
+        self.assertEqual(list(load._deduplicate_column_name(data, {"Sales"})), [
             ("Sales", [1]),
         ])
 
@@ -146,14 +146,14 @@ class TestLoad(PandasTestCase):
         extract_columns = {"column1", "column2"}
 
         with patch("fa.archive.load.UNO_VALUE_UNIT_COLUMNS", {"Cash & Short Term Investments"}), \
-             patch("fa.archive.load.parse_top_remark", MagicMock(return_value=(3, "SGD", 1000000))) \
+             patch("fa.archive.load._parse_top_remark", MagicMock(return_value=(3, "SGD", 1000000))) \
                 as mock_parse_top_remark, \
-             patch("fa.archive.load.deduplicate_column_name", MagicMock(side_effect=lambda a, b: a)) \
+             patch("fa.archive.load._deduplicate_column_name", MagicMock(side_effect=lambda a, b: a)) \
                 as mock_deduplicate_column_name, \
-             patch("fa.archive.load.parse_value", MagicMock(side_effect=lambda a, b: a)) \
+             patch("fa.archive.load._parse_value", MagicMock(side_effect=lambda a, b: a)) \
                 as mock_parse_value:
 
-            preprocessed = list(load.preprocess(obj, extract_columns))
+            preprocessed = list(load._preprocess(obj, extract_columns))
 
             mock_parse_top_remark.assert_called_once_with("top_remark")
             mock_deduplicate_column_name.assert_called_once_with(value_data, extract_columns)
@@ -169,7 +169,7 @@ class TestLoad(PandasTestCase):
         ])
 
     def test_load_financial_data(self):
-        with patch("fa.archive.load.preprocess", MagicMock(return_value=(("Date", [2, 1, 0]), ("Cash", [4, 5, 6])))) \
+        with patch("fa.archive.load._preprocess", MagicMock(return_value=(("Date", [2, 1, 0]), ("Cash", [4, 5, 6])))) \
             as mock_preprocess:
 
             df = load.load_financial_data(self.archive_directory, "balance-sheet", "C6L")
