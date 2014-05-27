@@ -37,3 +37,6 @@ class TestPandasTestCase(unittest.TestCase):
         with patch("tests.util.assert_panel_equal") as mock_assert_panel_equal:
             ptc.assertFrameEqual(p1, p2, b=1)
             mock_assert_panel_equal.assert_called_once_with(p1, p2, b=1)
+
+if __name__ == "__main__":
+    unittest.main()

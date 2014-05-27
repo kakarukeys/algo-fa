@@ -23,6 +23,7 @@ def backward_delta(frame):
 def derivative(frame, index_unit=1):
     """ Returns first-order derivative of frame.
         index_unit: optional divisor for deltas of index
+        (used when delta_index is not suitable for division)
 
         >>> derivative(pd.Series([3,2,8], index=[0,1,4]))
         0   -1
