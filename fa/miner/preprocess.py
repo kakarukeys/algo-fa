@@ -50,19 +50,17 @@ def _calc_financial_data_date(fiscal_year_end_month, period):
     d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
     return np.datetime64(d)
 
-def _deduplicate_column_name(data, extract_columns):
-    """ Yields (deduplicated column name, values) by iterating over <data> where column name is in <extract_columns>,
-        append _incremental number to each duplicate column name.
+def _deduplicate_column_name(data):
+    """ Yields (deduplicated column name, values) by iterating over <data>,
+        appending _incremental number to each duplicate column name.
         data: a sequence of (column_name, values)
-        extract_columns: set of column name strings, None - extract all.
     """
     counter = defaultdict(int)
     for column_name, values in data:
-        if extract_columns is None or column_name in extract_columns:
-            counter[column_name] += 1
+        counter[column_name] += 1
 
-            suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
-            yield column_name + suffix, values
+        suffix = '' if counter[column_name] == 1 else '_{0}'.format(counter[column_name])
+        yield column_name + suffix, values
 
 def _parse_value(string, value_unit):
     """ value string -> numpy-typed value
@@ -81,12 +79,10 @@ def _parse_value(string, value_unit):
             else:
                 return np.int64(s) * value_unit
 
-def preprocess(obj, extract_columns):
-    """ Preprocesses <obj>, extracts columns in <extract_columns>, parses the values
-        yields column name, list of parsed values
+def preprocess(obj):
+    """ Preprocesses <obj>, parses the values, yields column name, list of parsed values
 
-        obj: object parsed from json.
-        extract_columns: set of column name strings, None - extract all.
+        obj: dictionary of scraped raw data.
     """
     assert obj["timeframe"] == "annual"
 
@@ -98,6 +94,6 @@ def preprocess(obj, extract_columns):
     assert first_row[0] == "periods"
     yield "Date", [calc_date(int(d)) for d in first_row[1]]
 
-    for column_name, values in _deduplicate_column_name(obj["data"][1:], extract_columns):
+    for column_name, values in _deduplicate_column_name(obj["data"][1:]):
         value_unit_to_use = 1 if column_name in UNO_VALUE_UNIT_COLUMNS else value_unit
         yield column_name, [_parse_value(v, value_unit_to_use) for v in values]

@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 import numpy as np
 
-from fa.archive import preprocess
+from fa.miner import preprocess
 
 
 class TestPreprocess(unittest.TestCase):
@@ -36,16 +36,13 @@ class TestPreprocess(unittest.TestCase):
             ("Tax", [6]),
         )
 
-        self.assertEqual(list(preprocess._deduplicate_column_name(data, extract_columns=None)), [
+        self.assertEqual(list(preprocess._deduplicate_column_name(data)), [
             ("Sales", [1]),
             ("Cost", [2]),
             ("Cost_2", [3]),
             ("Tax", [4]),
             ("Cost_3", [5]),
             ("Tax_2", [6]),
-        ])
-        self.assertEqual(list(preprocess._deduplicate_column_name(data, {"Sales"})), [
-            ("Sales", [1]),
         ])
 
     def test_parse_value(self):
@@ -65,26 +62,25 @@ class TestPreprocess(unittest.TestCase):
             ["Liabilities & Shareholders' Equity", ["25,169", "22,589", "22,501"]],
         ]
         obj = {
-          "data": [["periods", ["2009", "2010", "2011"]]] + value_data,
-          "symbol": "C6L",
-          "timeframe": "annual",
-          "top_remark": "top_remark",
-          "report_type": "balance-sheet",
+            "data": [["periods", ["2009", "2010", "2011"]]] + value_data,
+            "symbol": "C6L",
+            "timeframe": "annual",
+            "top_remark": "top_remark",
+            "report_type": "balance-sheet",
         }
-        extract_columns = {"column1", "column2"}
 
-        with patch("fa.archive.preprocess.UNO_VALUE_UNIT_COLUMNS", {"Cash & Short Term Investments"}), \
-             patch("fa.archive.preprocess._parse_top_remark", MagicMock(return_value=(3, "SGD", 1000000))) \
+        with patch("fa.miner.preprocess.UNO_VALUE_UNIT_COLUMNS", {"Cash & Short Term Investments"}), \
+             patch("fa.miner.preprocess._parse_top_remark", MagicMock(return_value=(3, "SGD", 1000000))) \
                 as mock_parse_top_remark, \
-             patch("fa.archive.preprocess._deduplicate_column_name", MagicMock(side_effect=lambda a, b: a)) \
+             patch("fa.miner.preprocess._deduplicate_column_name", MagicMock(side_effect=lambda a: a)) \
                 as mock_deduplicate_column_name, \
-             patch("fa.archive.preprocess._parse_value", MagicMock(side_effect=lambda a, b: a)) \
+             patch("fa.miner.preprocess._parse_value", MagicMock(side_effect=lambda a, b: a)) \
                 as mock_parse_value:
 
-            preprocessed = list(preprocess.preprocess(obj, extract_columns))
+            preprocessed = list(preprocess.preprocess(obj))
 
             mock_parse_top_remark.assert_called_once_with("top_remark")
-            mock_deduplicate_column_name.assert_called_once_with(value_data, extract_columns)
+            mock_deduplicate_column_name.assert_called_once_with(value_data)
             # "Cash & Short Term Investments" is in UNO_VALUE_UNIT_COLUMNS
             mock_parse_value.assert_any_call("4,504", 1)
             mock_parse_value.assert_any_call("22,501", 1000000)
