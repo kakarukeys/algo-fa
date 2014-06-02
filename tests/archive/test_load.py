@@ -18,9 +18,9 @@ class TestLoad(PandasTestCase):
             df = load.load_historical_data(self.archive_directory, "C6L")
 
         expected = pd.DataFrame(
-            [[1323000.0,10.18],
-             [804000.0,10.17],
-             [425000.0,10.14]],
+            [[1323000.0, 10.18],
+             [804000.0, 10.17],
+             [425000.0, 10.14]],
             index=pd.to_datetime(["2014-02-20", "2014-02-21", "2014-02-24"]),
             columns=["Volume", "Adj Close"]
         )
@@ -47,12 +47,12 @@ class TestLoad(PandasTestCase):
 
         expected = pd.Panel(
             [[[np.nan, np.nan],
-              [881000.0,3.26],
-              [566000.0,3.28],
-              [362000.0,3.30]],
-             [[1323000.0,10.18],
-              [804000.0,10.17],
-              [425000.0,10.14],
+              [881000.0, 3.26],
+              [566000.0, 3.28],
+              [362000.0, 3.30]],
+             [[1323000.0, 10.18],
+              [804000.0, 10.17],
+              [425000.0, 10.14],
               [np.nan, np.nan]]],
             items=["B2F", "C6L"],
             major_axis=pd.to_datetime(["2014-02-20", "2014-02-21", "2014-02-24", "2014-02-25"]),
@@ -80,16 +80,28 @@ class TestLoad(PandasTestCase):
         self.assertFrameEqual(p, expected)
 
     def test_load_financial_data(self):
-        with patch("fa.archive.load.preprocess", MagicMock(return_value=(("Date", [2, 1, 0]), ("Cash", [4, 5, 6])))) \
-            as mock_preprocess:
+        df = load.load_financial_data(self.archive_directory, "balance-sheet", "C6L")
 
-            df = load.load_financial_data(self.archive_directory, "balance-sheet", "C6L")
-            mock_preprocess.assert_called_with({"symbol": "C6L"}, None)    # obj from the fixture json file
+        expected = pd.DataFrame(
+            [[24610000000, 0.3913],
+             [24226000000, 0.4111],
+             [np.nan, 0.4038]],
+            index=pd.to_datetime(["2010-04-01", "2011-04-01", "2012-04-01"]),
+            columns=["Property, Plant & Equipment - Gross", "Total Liabilities / Total Assets"]
+        )
+        expected.index.name = "Date"
+        self.assertFrameEqual(df, expected)
 
-            df = load.load_financial_data(self.archive_directory, "balance-sheet", "C6L", ["column1", "column2"])
-            mock_preprocess.assert_called_with({"symbol": "C6L"}, {"column1", "column2"})
+    def test_load_financial_data__select_columns(self):
+        df = load.load_financial_data(self.archive_directory, "balance-sheet", "C6L", ["Total Liabilities / Total Assets"])
 
-        expected = pd.DataFrame({"Cash": [6, 5, 4]})    # sorted by Date
+        expected = pd.DataFrame(
+            [[0.3913],
+             [0.4111],
+             [0.4038]],
+            index=pd.to_datetime(["2010-04-01", "2011-04-01", "2012-04-01"]),
+            columns=["Total Liabilities / Total Assets"]
+        )
         expected.index.name = "Date"
         self.assertFrameEqual(df, expected)
 
@@ -97,7 +109,7 @@ class TestLoad(PandasTestCase):
         columns = ["column1", "column2"]
 
         with patch("fa.archive.load.FINANCIAL_REPORT_TYPES", ("bs", "cf", "is")), \
-             patch("fa.archive.load.load_financial_data", MagicMock(side_effect=lambda a,b,c,d: b)) \
+             patch("fa.archive.load.load_financial_data", MagicMock(side_effect=lambda a, b, c, d: b)) \
                 as mock_load_financial_data:
 
             data = load.load_financial_data_all(self.archive_directory, "C6L", columns)
