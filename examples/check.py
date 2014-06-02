@@ -1,8 +1,8 @@
 import numpy as np
 from pandas.parser import CParserError
 
-from fa.loader import load_historical_data, load_financial_data, FINANCIAL_REPORT_TYPES
-from fa.sanity import check_for_missing_date, check_for_discontinuity, check_for_missing_value
+from fa.archive.load import load_historical_data, load_financial_data, FINANCIAL_REPORT_TYPES
+from fa.analysis.sanity import check_for_missing_date, check_for_discontinuity, check_for_missing_value
 
 from settings import archive_directory, symbols
 
@@ -11,8 +11,9 @@ from settings import archive_directory, symbols
 
 def print_missing_dates(result):
     print("missing dates: ", end='')
-    for date in result:
-        print("Missing date before {0}.".format(date))
+    if result:
+        for date in result:
+            print("Missing date before {0}.".format(date))
     else:
         print("No missing date.")
     print()

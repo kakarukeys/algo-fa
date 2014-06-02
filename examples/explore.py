@@ -4,10 +4,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fa.metric import Metric, PROFIT_MARGIN_KINDS
-from fa.inspect import get_first_commonly_available_year
-from fa.plot_util import print_point_labels
+from fa.analysis.finance import Metric, PROFIT_MARGIN_KINDS
+from fa.analysis.measurement import get_first_commonly_available_year
 
+from plot_util import print_point_labels
 from settings import archive_directory, symbols, end_date
 
 
@@ -21,10 +21,10 @@ title = "P/E Ratio of stocks over Date\n"
 xticks = reduce(lambda a, b: a | b, [ts.index for ts in pe_ratios_list])
 
 with pd.plot_params.use('x_compat', True):
-	for series, label in zip(pe_ratios_list, symbols.values()):
-		graph = series.plot(label=label, legend=True, title=title, xticks=xticks)
-		graph.set_xlabel("Date")
-		graph.set_ylabel("P/E Ratio")
+    for series, label in zip(pe_ratios_list, symbols.values()):
+        graph = series.plot(label=label, legend=True, title=title, xticks=xticks)
+        graph.set_xlabel("Date")
+        graph.set_ylabel("P/E Ratio")
 
 # prepare graph data
 buy_year = get_first_commonly_available_year(pe_ratios_list)
@@ -39,15 +39,15 @@ percentage_annual_returns = [dm.calc_annual_return(sell_date) * 100 for dm in da
 
 profit_margin_labels = [k.title() + " Profit Margin (%)" for k in PROFIT_MARGIN_KINDS]
 profit_margins = {
-	label: [dm.calc_profit_margin(kind) * 100 for dm in dated_metrics]
-	for label, kind in zip(profit_margin_labels, PROFIT_MARGIN_KINDS)
+    label: [dm.calc_profit_margin(kind) * 100 for dm in dated_metrics]
+    for label, kind in zip(profit_margin_labels, PROFIT_MARGIN_KINDS)
 }
 
 graph_data = {
-	"Symbol": list(symbols.keys()),
-	"Name": list(symbols.values()),
-	"P/E Ratio": pe_ratios,
-	"Annual Return (%)": percentage_annual_returns,
+    "Symbol": list(symbols.keys()),
+    "Name": list(symbols.values()),
+    "P/E Ratio": pe_ratios,
+    "Annual Return (%)": percentage_annual_returns,
 }
 graph_data.update(profit_margins)
 
