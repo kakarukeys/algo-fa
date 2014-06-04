@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
+from io import StringIO
 
 import pandas as pd
 
@@ -42,6 +43,11 @@ class TestFAUtil(unittest.TestCase):
     def test_transpose_items(self):
         transposed = fa_util.transpose_items((("foo", [1, 2, 3]), ("bar", [4, 5, 6])))
         self.assertEqual(list(transposed), [("foo", "bar"), (1, 4), (2, 5), (3, 6)])
+
+    def test_transpose_csv(self):
+        output = StringIO()
+        fa_util.transpose_csv(StringIO("foo|bar\n1|4\n2|5\n3|6\n"), output, '|')
+        self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4|5|6\r\n")
 
 if __name__ == "__main__":
     unittest.main()
