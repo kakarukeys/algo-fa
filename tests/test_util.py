@@ -39,6 +39,23 @@ class TestPandasTestCase(unittest.TestCase):
             ptc.assertFrameEqual(p1, p2, b=1)
             mock_assert_panel_equal.assert_called_once_with(p1, p2, b=1)
 
+class TestFileIOTestCase(unittest.TestCase):
+    def test_setUp(self):
+        real_open = open
+
+        # check if open is patched after setUp runs
+        ftc = test_util.FileIOTestCase()
+        ftc.setUp()
+
+        with open("file.txt", 'w') as f:
+            self.assertIs(ftc.stream, f)
+
+        ftc.mo.assert_called_once_with("file.txt", 'w')
+
+        # check if the patching is undone in cleanup
+        ftc.doCleanups()
+        self.assertIs(open, real_open)
+
 class TestFAUtil(unittest.TestCase):
     def test_transpose_items(self):
         transposed = fa_util.transpose_items((("foo", [1, 2, 3]), ("bar", [4, 5, 6])))
@@ -46,8 +63,8 @@ class TestFAUtil(unittest.TestCase):
 
     def test_transpose_csv(self):
         output = StringIO()
-        fa_util.transpose_csv(StringIO("foo|bar\n1|4\n2|5\n3|6\n"), output, '|')
-        self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4|5|6\r\n")
+        fa_util.transpose_csv(StringIO("foo|bar\n1|4.0\n2|5\n3|6\n"), output, '|')
+        self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4.0|5|6\r\n")
 
 if __name__ == "__main__":
     unittest.main()
