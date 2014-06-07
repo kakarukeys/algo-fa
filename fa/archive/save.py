@@ -1,11 +1,14 @@
 import csv, json, os
 
+import pandas as pd
+
 
 def write_file(obj, directory, symbol):
     """ Writes <obj> to a file <symbol>.{extension} in <directory>, extension is either csv or json.
         obj is one of these:
             a dictionary (json object)
             a csv string
+            a DataFrame object
             an iterable of csv rows
     """
     if isinstance(obj, dict):
@@ -14,6 +17,9 @@ def write_file(obj, directory, symbol):
     elif isinstance(obj, str):
         extension = "csv"
         write = lambda obj, f: f.write(obj)
+    elif isinstance(obj, pd.DataFrame):
+        extension = "csv"
+        write = lambda obj, f: obj.to_csv(f, sep='|', na_rep="nan")
     else:
         extension = "csv"
         write = lambda obj, f: csv.writer(f, delimiter='|').writerows(obj)
