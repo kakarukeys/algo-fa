@@ -47,14 +47,27 @@ class TestFileIOTestCase(unittest.TestCase):
         ftc = test_util.FileIOTestCase()
         ftc.setUp()
 
-        with open("file.txt", 'w') as f:
-            self.assertIs(ftc.stream, f)
+        with open("file.txt", 'r') as f:
+            f.read()
 
-        ftc.mo.assert_called_once_with("file.txt", 'w')
+        ftc.mo.assert_called_once_with("file.txt", 'r')
+        ftc.mo.return_value.read.assert_called_once_with()
 
         # check if the patching is undone in cleanup
         ftc.doCleanups()
         self.assertIs(open, real_open)
+
+    def test_get_written_string(self):
+        ftc = test_util.FileIOTestCase()
+        ftc.setUp()
+
+        with open("file.txt", 'w') as f:
+            f.write("abc\n")
+            f.write("def\n")
+
+        self.assertEqual(ftc.get_written_string(), "abc\ndef\n")
+
+        ftc.doCleanups()
 
 class TestFAUtil(unittest.TestCase):
     def test_transpose_items(self):
