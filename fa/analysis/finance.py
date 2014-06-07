@@ -103,14 +103,7 @@ class Metric(object):
         """ Returns the Profit Margin series of the stock.
             kind: a string in PROFIT_MARGIN_KINDS
         """
-        if kind == "operating":
-            profit = \
-                self.income_statement_lagged["Gross Income"] - \
-                self.income_statement_lagged["SG&A Expense"] - \
-                self.income_statement_lagged["Other Operating Expense"]
-        else:
-            profit = self.income_statement_lagged[kind.title() + " Income"]
-
+        profit = self.income_statement_lagged[kind.title() + " Income"]
         revenue = self.income_statement_lagged["Sales/Revenue"]
 
         return profit / revenue
@@ -151,14 +144,7 @@ class DatedMetric(Metric):
         """ Returns the Profit Margin of the stock at the internal date.
             kind: a string in PROFIT_MARGIN_KINDS
         """
-        if kind == "operating":
-            profit = \
-                self.income_statement_lagged.at[self.date, "Gross Income"] - \
-                self.income_statement_lagged.at[self.date, "SG&A Expense"] - \
-                self.income_statement_lagged.at[self.date, "Other Operating Expense"]
-        else:
-            profit = self.income_statement_lagged.at[self.date, kind.title() + " Income"]
-
+        profit = self.income_statement_lagged.at[self.date, kind.title() + " Income"]
         revenue = self.income_statement_lagged.at[self.date, "Sales/Revenue"]
 
         return profit / revenue

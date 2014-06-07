@@ -15,7 +15,7 @@ class TestMetric(PandasTestCase):
              patch("fa.analysis.finance.load_financial_data_all", MagicMock(return_value={rt: rt[0] for rt in FINANCIAL_REPORT_TYPES})) as mock_load_financial_data_all, \
              patch("fa.analysis.finance.Metric.__init__", MagicMock(return_value=None)) as mock_constructor:
 
-            obj = Metric.from_archive("/path/to/archive" ,"C6L", 1, b=2)
+            obj = Metric.from_archive("/path/to/archive", "C6L", 1, b=2)
             mock_load_historical_data.assert_called_once_with("/path/to/archive", "C6L")
             mock_load_financial_data_all.assert_called_once_with("/path/to/archive", "C6L")
             mock_constructor.assert_called_once_with(1, b=2, historical='h', balance_sheet='b', cash_flow='c', income_statement='i')
@@ -87,9 +87,7 @@ class TestMetric(PandasTestCase):
     def test_calc_profit_margin(self):
         income_statement_data = {
             "Gross Income": [62, 50, 36],
-            "Sales/Revenue": [3.1, 2.0, 1.2],
-            "SG&A Expense": [10, 20, 12],
-            "Other Operating Expense": [21, 2, 3],
+            "Sales/Revenue": [3.1, 2.0, 1.2]
         }
         income_statement_index = pd.to_datetime(["2012-01-01", "2012-01-02", "2012-01-03"])
 
@@ -99,12 +97,10 @@ class TestMetric(PandasTestCase):
         )
 
         gross_profit_margin = metric.calc_profit_margin("gross")
-        operating_profit_margin = metric.calc_profit_margin("operating")
 
         # because of 1 day financial_report_preparation_lag
         expected_index = pd.to_datetime(["2012-01-02", "2012-01-03", "2012-01-04"])
         self.assertFrameEqual(gross_profit_margin, pd.Series([20, 25, 30], index=expected_index), check_dtype=False)
-        self.assertFrameEqual(operating_profit_margin, pd.Series([10, 14, 17.5], index=expected_index))
 
 class TestDatedMetric(unittest.TestCase):
     def test_calc_return(self):
@@ -153,9 +149,7 @@ class TestDatedMetric(unittest.TestCase):
     def test_calc_profit_margin(self):
         income_statement_data = {
             "Gross Income": [62, 50, 36],
-            "Sales/Revenue": [3.1, 2.0, 1.2],
-            "SG&A Expense": [10, 20, 12],
-            "Other Operating Expense": [21, 2, 3],
+            "Sales/Revenue": [3.1, 2.0, 1.2]
         }
         income_statement_index = pd.to_datetime(["2012-01-01", "2012-01-02", "2012-01-03"])
 
@@ -166,11 +160,9 @@ class TestDatedMetric(unittest.TestCase):
         )
 
         gross_profit_margin = dated_metric.calc_profit_margin("gross")
-        operating_profit_margin = dated_metric.calc_profit_margin("operating")
 
         # because of 1 day financial_report_preparation_lag
         self.assertEqual(gross_profit_margin, 25)
-        self.assertEqual(operating_profit_margin, 14)
 
 if __name__ == "__main__":
     unittest.main()
