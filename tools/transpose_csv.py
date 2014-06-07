@@ -3,6 +3,18 @@ import argparse, sys
 from fa.util import transpose_csv
 
 
+""" Example usage
+
+to recursively transpose all files under current directory to a transposed directory:
+find -mindepth 1 -type d -exec mkdir -p transposed/{} \;
+find -type f -exec python /home/kakarukeys/projects/algo-fa/tools/transpose_csv.py -o transposed/{} {} \;
+
+to transpose again all transposed files, overwriting the original files:
+cd transposed/
+find -type f -exec python /home/kakarukeys/projects/algo-fa/tools/transpose_csv.py -o ../{} {} \;
+
+"""
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Tranpose a csv file.")
 
