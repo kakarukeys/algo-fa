@@ -72,18 +72,16 @@ class TestFileIOTestCase(unittest.TestCase):
         ftc.doCleanups()
 
 class TestDBTestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.mock_test_db = pw.SqliteDatabase(None)
+    def test_setUpClass_tearDownClass(self):
+        mock_test_db = pw.SqliteDatabase(None)
 
-    def test_setUpClass(self):
         class MockModel(pw.Model):
             name = pw.CharField()
 
             class Meta:
-                database = self.mock_test_db
+                database = mock_test_db
 
-        with patch("fa.database.models.db", self.mock_test_db), \
+        with patch("fa.database.models.db", mock_test_db), \
              patch("fa.database.models.export", [MockModel]):
             test_util.DBTestCase.setUpClass()
 
@@ -96,9 +94,17 @@ class TestDBTestCase(unittest.TestCase):
         # assert this after a query: creation of database is lazy, deferred till actual query happens
         self.assertTrue(os.path.exists(test_util.DBTestCase.test_db_path))
 
-    def test_tearDownClass(self):
         test_util.DBTestCase.tearDownClass()
+
         self.assertFalse(os.path.exists(test_util.DBTestCase.test_db_path))
+
+    def test_setUpClass_cleanup(self):
+        with patch("fa.database.models.db.init", MagicMock(side_effect=Exception)), \
+             patch("tests.util.DBTestCase._cleanup") as mock_cleanup:
+            try:
+                test_util.DBTestCase.setUpClass()
+            except:
+                mock_cleanup.assert_called_once_with()
 
 class TestFAUtil(unittest.TestCase):
     def test_transpose_items(self):

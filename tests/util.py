@@ -49,12 +49,21 @@ class DBTestCase(unittest.TestCase):
     test_db_path = "test-algo-fa.db"
 
     @classmethod
+    def _cleanup(cls):
+        """ deletes test database """
+        os.remove(cls.test_db_path)
+
+    @classmethod
     def setUpClass(cls):
         """ creates test database and all tables """
-        models.db.init(cls.test_db_path)
-        models.db.create_tables(models.export)
+        try:
+            models.db.init(cls.test_db_path)
+            models.db.create_tables(models.export)
+        except:
+            cls._cleanup()   # immediately performs cleanup if exception occurs
+            raise
 
     @classmethod
     def tearDownClass(cls):
-        """ deletes test database """
-        os.remove(cls.test_db_path)
+        """ does cleanup after all tests """
+        cls._cleanup()
