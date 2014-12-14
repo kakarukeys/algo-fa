@@ -1,8 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from io import StringIO
+import os
 
 import pandas as pd
+import peewee as pw
 
 from tests import util as test_util
 from fa import util as fa_util
@@ -68,6 +70,35 @@ class TestFileIOTestCase(unittest.TestCase):
         self.assertEqual(ftc.get_written_string(), "abc\ndef\n")
 
         ftc.doCleanups()
+
+class TestDBTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mock_test_db = pw.SqliteDatabase(None)
+
+    def test_setUpClass(self):
+        class MockModel(pw.Model):
+            name = pw.CharField()
+
+            class Meta:
+                database = self.mock_test_db
+
+        with patch("fa.database.models.db", self.mock_test_db), \
+             patch("fa.database.models.export", [MockModel]):
+            test_util.DBTestCase.setUpClass()
+
+        try:
+            MockModel.create(name="foo")
+            MockModel.get()
+        except pw.OperationalError:
+            self.fail("table not created!")
+
+        # assert this after a query: creation of database is lazy, deferred till actual query happens
+        self.assertTrue(os.path.exists(test_util.DBTestCase.test_db_path))
+
+    def test_tearDownClass(self):
+        test_util.DBTestCase.tearDownClass()
+        self.assertFalse(os.path.exists(test_util.DBTestCase.test_db_path))
 
 class TestFAUtil(unittest.TestCase):
     def test_transpose_items(self):

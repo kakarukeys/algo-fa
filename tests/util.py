@@ -1,8 +1,11 @@
 import unittest
 from unittest.mock import mock_open, patch
+import os
 
 from pandas import Series, DataFrame
 from pandas.util.testing import assert_series_equal, assert_frame_equal, assert_panel_equal
+
+from fa.database import models
 
 
 class PandasTestCase(unittest.TestCase):
@@ -40,3 +43,18 @@ class FileIOTestCase(unittest.TestCase):
 
     def get_written_string(self):
         return ''.join(c[0][0] for c in self.mo.return_value.write.call_args_list)
+
+class DBTestCase(unittest.TestCase):
+    """ For testing code involving database io operations """
+    test_db_path = "test-algo-fa.db"
+
+    @classmethod
+    def setUpClass(cls):
+        """ creates test database and all tables """
+        models.db.init(cls.test_db_path)
+        models.db.create_tables(models.export)
+
+    @classmethod
+    def tearDownClass(cls):
+        """ deletes test database """
+        os.remove(cls.test_db_path)
