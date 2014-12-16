@@ -94,8 +94,11 @@ class TestDBTestCase(unittest.TestCase):
         # assert this after a query: creation of database is lazy, deferred till actual query happens
         self.assertTrue(os.path.exists(test_util.DBTestCase.test_db_path))
 
-        test_util.DBTestCase.tearDownClass()
+        with patch("fa.database.models.db", mock_test_db), \
+             patch("fa.database.models.export", [MockModel]):
+            test_util.DBTestCase.tearDownClass()
 
+        self.assertTrue(mock_test_db.is_closed())
         self.assertFalse(os.path.exists(test_util.DBTestCase.test_db_path))
 
     def test_setUpClass_cleanup(self):
@@ -115,6 +118,11 @@ class TestFAUtil(unittest.TestCase):
         output = StringIO()
         fa_util.transpose_csv(StringIO("foo|bar\n1|4.0\n2|5\n3|6\n"), output, '|')
         self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4.0|5|6\r\n")
+
+    def test_chucks(self):
+        l = list(range(10))
+        chunks = list(fa_util.partition(l, 4))
+        self.assertEqual(chunks, [[0, 1, 2 ,3], [4, 5, 6, 7], [8, 9]])
 
 if __name__ == "__main__":
     unittest.main()

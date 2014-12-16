@@ -16,3 +16,8 @@ def transpose_csv(csv_file, output, delimiter):
     reader = csv.reader(csv_file, delimiter=delimiter)
     writer = csv.writer(output, delimiter=delimiter)
     writer.writerows(zip(*reader))
+
+def partition(l, n):
+    """ Yields successive n-sized chunks from list <l> """
+    for i in range(0, len(l), n):
+        yield l[i : i + n]

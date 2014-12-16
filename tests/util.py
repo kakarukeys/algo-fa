@@ -45,12 +45,15 @@ class FileIOTestCase(unittest.TestCase):
         return ''.join(c[0][0] for c in self.mo.return_value.write.call_args_list)
 
 class DBTestCase(unittest.TestCase):
-    """ For testing code involving database io operations """
+    """ For testing code involving database io operations
+        Note: this class interacts with models module
+    """
     test_db_path = "test-algo-fa.db"
 
     @classmethod
     def _cleanup(cls):
-        """ deletes test database """
+        """ closes connection and deletes test database """
+        models.db.close()
         os.remove(cls.test_db_path)
 
     @classmethod

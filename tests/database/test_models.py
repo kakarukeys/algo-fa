@@ -10,8 +10,8 @@ from tests.util import DBTestCase
 
 class TestModels(DBTestCase):
     def test_whether_models_use_database(self):
-        for model in models.export:
-            self.assertIs(model._meta.database, models.db)
+        for Model in models.export:
+            self.assertIs(Model._meta.database, models.db)
 
     def test_models(self):
         symbol = "C6L.SI"
@@ -24,8 +24,8 @@ class TestModels(DBTestCase):
             models.CashFlow.create(symbol=symbol, date=date.today(), free_cash_flow=456.78)
             models.IncomeStatement.create(symbol=symbol, date=date.today(), ebit_margin=901.23)
 
-            for model in models.export:
-                self.assertEqual(model.get().symbol, "C6L.SI")
+            for Model in models.export:
+                self.assertEqual(Model.get().symbol, "C6L.SI")
 
             self.assertEqual(models.BalanceSheet.get().cash_only, 123.45)
             self.assertEqual(models.CashFlow.get().free_cash_flow, 456.78)
