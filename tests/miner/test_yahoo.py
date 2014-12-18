@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock, call
-
 from datetime import datetime
+
+from requests.exceptions import ConnectionError
 
 from fa.miner import yahoo
 
@@ -12,26 +13,37 @@ class TestYahoo(unittest.TestCase):
             def __init__(self, url):
                 """ HTTP response from accessing the API URL """
                 symbol = url[36:39]
-                self.status_code = 400 if symbol == "err" else 200  # 3rd symbol to trigger error
-                self.text = symbol + ".csv"
+                if symbol == "err": # 3rd symbol to trigger server error
+                    self.status_code = 400
+                    self.reason = "bad request"
+                    self.url = url
+                else:
+                    self.status_code = 200
+                    self.text = symbol + ".csv"
 
         with patch("fa.miner.wsj.requests.get", MagicMock(side_effect=MockResponse)) as mock_get:
-            result = yahoo.get_historical_data(("C6L", "ZZZ", "err"), datetime(2004, 3, 1), datetime(2014, 3, 1))
+            result = yahoo.get_historical_data(("C6L.SI", "ZZZ", "err"), datetime(2004, 3, 1), datetime(2014, 3, 1))
 
             mock_get.assert_has_calls([
                 call("http://ichart.yahoo.com/table.csv?s=C6L.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
-                call("http://ichart.yahoo.com/table.csv?s=ZZZ.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
-                call("http://ichart.yahoo.com/table.csv?s=err.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
+                call("http://ichart.yahoo.com/table.csv?s=ZZZ&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
+                call("http://ichart.yahoo.com/table.csv?s=err&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
             ])
 
-        self.assertEqual(result, {"C6L": "C6L.csv", "ZZZ": "ZZZ.csv", "err": ''})
+        self.assertEqual(result, {"C6L.SI": "C6L.csv", "ZZZ": "ZZZ.csv", "err": ''})
+
+    def test_get_historical_data_exception_handling(self):
+        with patch("fa.miner.wsj.requests.get", MagicMock(side_effect=ConnectionError)):
+            result = yahoo.get_historical_data(("C6L.SI", "ZZZ"), datetime(2004, 3, 1), datetime(2014, 3, 1))
+
+        self.assertEqual(result, {"C6L.SI": '', "ZZZ": ''})
 
     def test_constuct_yql(self):
-        yql = yahoo._construct_yql(("C6L", "ZZZ"), "yahoo.finance.balancesheet", "annual")
-        self.assertEqual(yql, "SELECT * FROM yahoo.finance.balancesheet WHERE symbol IN ('C6L.SI','ZZZ.SI') AND timeframe='annual'")
+        yql = yahoo._construct_yql(("C6L.SI", "ZZZ"), "yahoo.finance.balancesheet", "annual")
+        self.assertEqual(yql, "SELECT * FROM yahoo.finance.balancesheet WHERE symbol IN ('C6L.SI','ZZZ') AND timeframe='annual'")
 
-        yql = yahoo._construct_yql(("C6L", "ZZZ"), "yahoo.finance.keystats", None)
-        self.assertEqual(yql, "SELECT * FROM yahoo.finance.keystats WHERE symbol IN ('C6L.SI','ZZZ.SI')")
+        yql = yahoo._construct_yql(("C6L.SI", "ZZZ"), "yahoo.finance.keystats", None)
+        self.assertEqual(yql, "SELECT * FROM yahoo.finance.keystats WHERE symbol IN ('C6L.SI','ZZZ')")
 
     def test_get_financial_data(self):
         class MockResponse(object):

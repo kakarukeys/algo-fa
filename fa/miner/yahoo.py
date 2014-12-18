@@ -1,5 +1,8 @@
+import logging
 import requests
 
+
+logger = logging.getLogger(__name__)
 
 SGX_SUFFIX = "SI"
 HISTORICAL_DATA_API_URL_TEMPLATE = "http://ichart.yahoo.com/table.csv?s={symbol}&a={startmonth}&b={startday}&c={startyear}&d={endmonth}&e={endday}&f={endyear}&g=d&ignore=.csv"
@@ -7,9 +10,6 @@ YQL_TEMPLATE_1 = "SELECT * FROM {table} WHERE symbol IN {symbols}"
 YQL_TEMPLATE_2 = " AND timeframe='{timeframe}'"
 YQL_API_URL = "http://query.yahooapis.com/v1/public/yql"
 FINANCIAL_REPORT_TYPES = ("balancesheet", "cashflow", "incomestatement", "keystats")
-
-def _get_full_symbol(s):
-    return s + '.' + SGX_SUFFIX
 
 def _get_abcdef(start_date, end_date):
     return {
@@ -27,18 +27,28 @@ def get_historical_data(symbols, start_date, end_date):
         >>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
         {"C6L": "...", "ZZZZZZ": ''}
     """
+    logger.info("getting historical data of %s from %s to %s", ','.join(symbols), start_date, end_date)
     abcdef = _get_abcdef(start_date, end_date)
 
     result = {}
     for s in symbols:
-        url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=_get_full_symbol(s), **abcdef)
-        r = requests.get(url)
-        result[s] = r.text if r.status_code == 200 else ''
+        url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=s, **abcdef)
+        try:
+            r = requests.get(url)
+        except requests.exceptions.RequestException as e:
+            logger.exception(e)
+            result[s] = ''
+        else:
+            if r.status_code == 200:
+                result[s] = r.text
+            else:
+                logger.warning("GET %s %s %s", r.url, r.status_code, r.reason)
+                result[s] = ''
 
     return result
 
 def _construct_yql(symbols, table, timeframe):
-    full_symbols = '({0})'.format(','.join(repr(_get_full_symbol(s)) for s in symbols))
+    full_symbols = '({0})'.format(','.join(map(repr, symbols)))
     yql = YQL_TEMPLATE_1.format(table=table, symbols=full_symbols)
 
     if timeframe:
