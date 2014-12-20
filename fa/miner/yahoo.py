@@ -23,6 +23,7 @@ def _get_abcdef(start_date, end_date):
 
 def get_historical_data(symbols, start_date, end_date):
     """ Returns {"symbol": "historical data in csv string"}:
+        (blank string if there is an error.)
 
         >>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
         {"C6L": "...", "ZZZZZZ": ''}

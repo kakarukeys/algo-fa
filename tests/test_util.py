@@ -119,6 +119,10 @@ class TestFAUtil(unittest.TestCase):
         fa_util.transpose_csv(StringIO("foo|bar\n1|4.0\n2|5\n3|6\n"), output, '|')
         self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4.0|5|6\r\n")
 
+    def test_to_pythonic_name(self):
+        name = fa_util.to_pythonic_name("Cash & ST Investments / Total Assets")
+        self.assertEqual(name, "cash_st_investments_total_assets")
+
     def test_chucks(self):
         l = list(range(10))
         chunks = list(fa_util.partition(l, 4))

@@ -1,4 +1,5 @@
 import csv
+import re
 
 
 def transpose_items(items):
@@ -16,6 +17,9 @@ def transpose_csv(csv_file, output, delimiter):
     reader = csv.reader(csv_file, delimiter=delimiter)
     writer = csv.writer(output, delimiter=delimiter)
     writer.writerows(zip(*reader))
+
+def to_pythonic_name(verbose_name):
+    return re.sub(r"[^\w]+", '_', verbose_name).lower()
 
 def partition(l, n):
     """ Yields successive n-sized chunks from list <l> """

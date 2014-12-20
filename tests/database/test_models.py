@@ -34,13 +34,9 @@ class TestModels(DBTestCase):
         except (pw.DatabaseError, NameError):
             self.fail("models not declared properly!")
 
-    def test_to_pythonic_name(self):
-        name = models._to_pythonic_name("Cash & ST Investments / Total Assets")
-        self.assertEqual(name, "cash_st_investments_total_assets")
-
     def test_get_numerical_column_names(self):
         with patch("fa.database.balancesheet_numerical_columns.verbose_names", ["abc", "def"]), \
-             patch("fa.database.models._to_pythonic_name", MagicMock(side_effect=lambda x: x + '_')) as mock_to_pythonic_name:
+             patch("fa.database.models.to_pythonic_name", MagicMock(side_effect=lambda x: x + '_')) as mock_to_pythonic_name:
             names = models._get_numerical_column_names("BalanceSheet")
             mock_to_pythonic_name.assert_has_calls([call("abc"), call("def")])
 

@@ -1,7 +1,7 @@
-import re
 import peewee as pw
 
 from fa.database import balancesheet_numerical_columns, cashflow_numerical_columns, incomestatement_numerical_columns
+from fa.util import  to_pythonic_name
 
 
 db = pw.SqliteDatabase(None) # path to be specified at runtime
@@ -49,15 +49,12 @@ class Price(EventModel):
 
 # the 3 financial data models are dynamically generated:
 
-def _to_pythonic_name(verbose_name):
-    return re.sub(r"[^\w]+", '_', verbose_name).lower()
-
 def _get_numerical_column_names(model_name):
     """returns all numerical column names of a financial data model,
        which are converted from verbose names stored in separate files imported.
     """
     verbose_names = globals()[model_name.lower() + "_numerical_columns"].verbose_names
-    return [_to_pythonic_name(name) for name in verbose_names]
+    return [to_pythonic_name(name) for name in verbose_names]
 
 def _create_financial_data_model(model_name):
     column_names = _get_numerical_column_names(model_name)
