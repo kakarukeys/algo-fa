@@ -17,12 +17,11 @@ class TestModels(DBTestCase):
         symbol = "C6L.SI"
 
         try:
-            models.Stock.create(symbol=symbol)
-            models.MarketIndex.create(symbol=symbol)
-            models.Price.create(symbol=symbol, date=date.today(), open=1.0, close=1.0, high=1.0, low=1.0, volume=10, adj_close=1.0)
-            models.BalanceSheet.create(symbol=symbol, date=date.today(), cash_only=123.45)
-            models.CashFlow.create(symbol=symbol, date=date.today(), free_cash_flow=456.78)
-            models.IncomeStatement.create(symbol=symbol, date=date.today(), ebit_margin=901.23)
+            models.Symbol.create(symbol=symbol, price_updated_at=date.today())
+            models.Price.create(symbol_obj=symbol, date=date.today(), open=1.0, close=1.0, high=1.0, low=1.0, volume=10, adj_close=1.0)
+            models.BalanceSheet.create(symbol_obj=symbol, date=date.today(), cash_only=123.45)
+            models.CashFlow.create(symbol_obj=symbol, date=date.today(), free_cash_flow=456.78)
+            models.IncomeStatement.create(symbol_obj=symbol, date=date.today(), ebit_margin=901.23)
 
             for Model in models.export:
                 self.assertEqual(Model.get().symbol, "C6L.SI")

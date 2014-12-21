@@ -6,38 +6,51 @@ from fa.util import  to_pythonic_name
 
 db = pw.SqliteDatabase(None) # path to be specified at runtime
 
+SYMBOL_CATEGORY_CHOICES = (
+    ("stock", "Stock"),
+    ("market_index", "Market Index"),
+)
+
 #------------------------------
-# base models to subclass from
+# base model to subclass from
 #------------------------------
 
 class BaseModel(pw.Model):
     class Meta:
         database = db
 
+#------------------------------
+# models for fundamental analytis
+#------------------------------
+
+class Symbol(BaseModel):
+    symbol = pw.CharField(primary_key=True)
+    name = pw.CharField(null=True)
+    industry = pw.CharField(null=True)
+    sector = pw.CharField(null=True)
+    category = pw.CharField(default="stock", choices=SYMBOL_CATEGORY_CHOICES)
+
+    # to keep track of data update
+    price_updated_at = pw.DateField(null=True)
+    balance_sheet_updated_at = pw.DateField(null=True)
+    cash_flow_updated_at = pw.DateField(null=True)
+    income_statement_updated_at = pw.DateField(null=True)
+
 class EventModel(pw.Model):
-    symbol = pw.CharField(index=True)
+    symbol_obj = pw.ForeignKeyField(Symbol, db_column="symbol", index=True)
     date = pw.DateField()
+
+    # so that symbol lookup will not trigger an extra select query (Peewee's behaviour)
+    @property
+    def symbol(self):
+        return self._data["symbol_obj"]
 
     class Meta:
         database = db
         indexes = (
             # create a unique composite index
-            (("symbol", "date"), True),
+            (("symbol_obj", "date"), True),
         )
-
-#------------------------------
-# models for fundamental analytis
-#------------------------------
-
-class Stock(BaseModel):
-    symbol = pw.CharField(primary_key=True)
-    name = pw.CharField(null=True)
-    industry = pw.CharField(null=True)
-    sector = pw.CharField(null=True)
-
-class MarketIndex(BaseModel):
-    symbol = pw.CharField(primary_key=True)
-    name = pw.CharField(null=True)
 
 class Price(EventModel):
     open = pw.DoubleField()
@@ -72,4 +85,4 @@ for model_name in ("BalanceSheet", "CashFlow", "IncomeStatement"):
 # lists all active models (for iteration purpose)
 #------------------------------------------------
 
-export = [Stock, MarketIndex, Price, BalanceSheet, CashFlow, IncomeStatement]
+export = [Symbol, Price, BalanceSheet, CashFlow, IncomeStatement]
