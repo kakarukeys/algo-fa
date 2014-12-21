@@ -28,6 +28,7 @@ def update_historical_prices(symbol, records, end_date):
             Symbol.update(price_updated_at=end_date).where(Symbol.symbol == symbol).execute()
     except Exception as e:
         logger.exception(e)
+        logger.debug("Was trying to insert a record: {0}".format(rec))
         logger.error("Historical prices of {0} are not updated.".format(symbol))
         raise
 

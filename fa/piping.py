@@ -16,5 +16,5 @@ def csv_string_to_records(symbol, csv_string, **kwargs):
     keys = [to_pythonic_name(verbose_name) for verbose_name in next(reader)]  # headers to keys
     for row in reader:
         record = dict(zip(keys, row))
-        record["symbol"] = symbol
+        record["symbol_obj"] = symbol
         yield record
