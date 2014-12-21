@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock, call
-from datetime import date
+from datetime import datetime
 
 import peewee as pw
 
@@ -15,13 +15,14 @@ class TestModels(DBTestCase):
 
     def test_models(self):
         symbol = "C6L.SI"
+        dt = datetime(2012, 12, 21)
 
         try:
-            models.Symbol.create(symbol=symbol, price_updated_at=date.today())
-            models.Price.create(symbol_obj=symbol, date=date.today(), open=1.0, close=1.0, high=1.0, low=1.0, volume=10, adj_close=1.0)
-            models.BalanceSheet.create(symbol_obj=symbol, date=date.today(), cash_only=123.45)
-            models.CashFlow.create(symbol_obj=symbol, date=date.today(), free_cash_flow=456.78)
-            models.IncomeStatement.create(symbol_obj=symbol, date=date.today(), ebit_margin=901.23)
+            models.Symbol.create(symbol=symbol, price_updated_at=dt)
+            models.Price.create(symbol_obj=symbol, date=dt, open=1.0, close=1.0, high=1.0, low=1.0, volume=10, adj_close=1.0)
+            models.BalanceSheet.create(symbol_obj=symbol, date=dt, cash_only=123.45)
+            models.CashFlow.create(symbol_obj=symbol, date=dt, free_cash_flow=456.78)
+            models.IncomeStatement.create(symbol_obj=symbol, date=dt, ebit_margin=901.23)
 
             for Model in models.export:
                 self.assertEqual(Model.get().symbol, "C6L.SI")

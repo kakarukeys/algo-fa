@@ -31,14 +31,14 @@ class Symbol(BaseModel):
     category = pw.CharField(default="stock", choices=SYMBOL_CATEGORY_CHOICES)
 
     # to keep track of data update
-    price_updated_at = pw.DateField(null=True)
-    balance_sheet_updated_at = pw.DateField(null=True)
-    cash_flow_updated_at = pw.DateField(null=True)
-    income_statement_updated_at = pw.DateField(null=True)
+    price_updated_at = pw.DateTimeField(null=True)
+    balance_sheet_updated_at = pw.DateTimeField(null=True)
+    cash_flow_updated_at = pw.DateTimeField(null=True)
+    income_statement_updated_at = pw.DateTimeField(null=True)
 
 class EventModel(pw.Model):
     symbol_obj = pw.ForeignKeyField(Symbol, db_column="symbol", index=True)
-    date = pw.DateField()
+    date = pw.DateTimeField()
 
     # so that symbol lookup will not trigger an extra select query (Peewee's behaviour)
     @property
