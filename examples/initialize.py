@@ -13,4 +13,8 @@ def init():
     db.connect()
 
     # set up logging
-    logging.basicConfig(filename=log_file_path, level=log_level)
+    logging.basicConfig(
+        filename=log_file_path,
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )

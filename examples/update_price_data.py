@@ -4,7 +4,7 @@ import logging
 from fa.miner import yahoo
 from fa.piping import csv_string_to_records
 from fa.util import partition
-from fa.database.query import get_symbols_to_update_data, update_historical_prices
+from fa.database.query import get_outdated_symbols, update_historical_prices
 
 import initialize
 from settings import *
@@ -15,8 +15,8 @@ from settings import *
 initialize.init()
 logger = logging.getLogger(__name__)
 
-logger.info("Will perform data update on all symbols not up to date on {0}.".format(end_date))
-all_symbols = get_symbols_to_update_data(end_date)
+logger.info("Will update historical prices of all symbols not up to date on {0}.".format(end_date))
+all_symbols = get_outdated_symbols("price", end_date)
 
 # do the download in chunks of size 8 to prevent overloading servers
 for symbols in partition(all_symbols, 8):

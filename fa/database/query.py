@@ -6,12 +6,15 @@ from fa.database.models import db, Symbol, Price, export
 
 logger = logging.getLogger(__name__)
 
-def get_symbols_to_update_data(end_date):
-    """ Gets symbols which data is never updated or was updated before <end_date>
+def get_outdated_symbols(data_type, end_date):
+    """ Gets symbols which <data_type> data is never updated or was updated before <end_date>.
+        data_type: name of *_updated_at fields in Symbol model without _updated_at
         end_date: datetime object
     """
+    field = getattr(Symbol, data_type + "_updated_at")
+
     return [s.symbol for s in Symbol.select(Symbol.symbol).where(
-        (Symbol.price_updated_at < end_date) | (Symbol.price_updated_at == None)
+        (field < end_date) | (field == None)
     )]
 
 def update_historical_prices(symbol, records, end_date):

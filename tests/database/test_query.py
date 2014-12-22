@@ -27,8 +27,8 @@ class TestQuery(DBTestCase):
     def tearDown(self):
         query.delete_all()
 
-    def test_get_symbols_to_update_data(self):
-        symbols = query.get_symbols_to_update_data(datetime(2013, 1, 1))
+    def test_get_outdated_symbols(self):
+        symbols = query.get_outdated_symbols("price", datetime(2013, 1, 1))
         self.assertEqual(symbols, ["C6L.SI", "J7X.SI"])
 
     def test_update_historical_prices(self):

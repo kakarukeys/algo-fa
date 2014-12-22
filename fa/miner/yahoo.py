@@ -28,7 +28,7 @@ def get_historical_data(symbols, start_date, end_date):
         >>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
         {"C6L": "...", "ZZZZZZ": ''}
     """
-    logger.info("getting historical data of %s from %s to %s", ','.join(symbols), start_date, end_date)
+    logger.info("getting historical data of {0} from {1} to {2}".format(','.join(symbols), start_date, end_date))
     abcdef = _get_abcdef(start_date, end_date)
 
     result = {}
@@ -43,7 +43,7 @@ def get_historical_data(symbols, start_date, end_date):
             if r.status_code == 200:
                 result[s] = r.text
             else:
-                logger.warning("GET %s %s %s", r.url, r.status_code, r.reason)
+                logger.warning("GET {0} {1} {2}".format(r.url, r.status_code, r.reason))
                 result[s] = ''
 
     return result
