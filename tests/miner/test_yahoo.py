@@ -9,34 +9,19 @@ from fa.miner import yahoo
 
 class TestYahoo(unittest.TestCase):
     def test_get_historical_data(self):
-        class MockResponse(object):
-            def __init__(self, url):
-                """ HTTP response from accessing the API URL """
-                symbol = url[36:39]
-                if symbol == "err": # 3rd symbol to trigger server error
-                    self.status_code = 400
-                    self.reason = "bad request"
-                    self.url = url
-                else:
-                    self.status_code = 200
-                    self.text = symbol + ".csv"
+        def fake_get(url):
+            symbol = url[36:39]
+            return symbol + ".csv"
 
-        with patch("fa.miner.wsj.requests.get", MagicMock(side_effect=MockResponse)) as mock_get:
-            result = yahoo.get_historical_data(("C6L.SI", "ZZZ", "err"), datetime(2004, 3, 1), datetime(2014, 3, 1))
-
-            mock_get.assert_has_calls([
-                call("http://ichart.yahoo.com/table.csv?s=C6L.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
-                call("http://ichart.yahoo.com/table.csv?s=ZZZ&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
-                call("http://ichart.yahoo.com/table.csv?s=err&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
-            ])
-
-        self.assertEqual(result, {"C6L.SI": "C6L.csv", "ZZZ": "ZZZ.csv", "err": ''})
-
-    def test_get_historical_data_exception_handling(self):
-        with patch("fa.miner.wsj.requests.get", MagicMock(side_effect=ConnectionError)):
+        with patch("fa.miner.yahoo.lenient_get", MagicMock(side_effect=fake_get)) as mock_lenient_get:
             result = yahoo.get_historical_data(("C6L.SI", "ZZZ"), datetime(2004, 3, 1), datetime(2014, 3, 1))
 
-        self.assertEqual(result, {"C6L.SI": '', "ZZZ": ''})
+            mock_lenient_get.assert_has_calls([
+                call("http://ichart.yahoo.com/table.csv?s=C6L.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
+                call("http://ichart.yahoo.com/table.csv?s=ZZZ&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
+            ])
+
+        self.assertEqual(result, {"C6L.SI": "C6L.csv", "ZZZ": "ZZZ.csv"})
 
     def test_constuct_yql(self):
         yql = yahoo._construct_yql(("C6L.SI", "ZZZ"), "yahoo.finance.balancesheet", "annual")

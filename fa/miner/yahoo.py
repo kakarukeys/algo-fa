@@ -1,5 +1,8 @@
 import logging
+
 import requests
+
+from fa.miner.http import lenient_get
 
 
 logger = logging.getLogger(__name__)
@@ -34,17 +37,7 @@ def get_historical_data(symbols, start_date, end_date):
     result = {}
     for s in symbols:
         url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=s, **abcdef)
-        try:
-            r = requests.get(url)
-        except requests.exceptions.RequestException as e:
-            logger.exception(e)
-            result[s] = ''
-        else:
-            if r.status_code == 200:
-                result[s] = r.text
-            else:
-                logger.warning("GET {0} {1} {2}".format(r.url, r.status_code, r.reason))
-                result[s] = ''
+        result[s] = lenient_get(url)
 
     return result
 
