@@ -2,7 +2,8 @@ import logging
 
 import requests
 
-from fa.miner.http import lenient_get
+from fa.miner.http import strict_get
+from fa.miner.exceptions import GetError
 
 
 logger = logging.getLogger(__name__)
@@ -28,8 +29,8 @@ def get_historical_data(symbols, start_date, end_date):
     """ Returns {"symbol": "historical data in csv string"}:
         (blank string if there is an error.)
 
-        >>> get_historical_data(("C6L", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
-        {"C6L": "...", "ZZZZZZ": ''}
+        >>> get_historical_data(("C6L.SI", "ZZZZZZ",), datetime(2004, 3, 1), datetime(2014, 3, 1))
+        {"C6L.SI": "...", "ZZZZZZ": ''}
     """
     logger.info("getting historical data of {0} from {1} to {2}".format(','.join(symbols), start_date, end_date))
     abcdef = _get_abcdef(start_date, end_date)
@@ -37,7 +38,10 @@ def get_historical_data(symbols, start_date, end_date):
     result = {}
     for s in symbols:
         url = HISTORICAL_DATA_API_URL_TEMPLATE.format(symbol=s, **abcdef)
-        result[s] = lenient_get(url)
+        try:
+            result[s] = strict_get(url)
+        except GetError:
+            result[s] = ''
 
     return result
 

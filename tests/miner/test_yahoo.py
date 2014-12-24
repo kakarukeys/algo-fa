@@ -2,9 +2,8 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 from datetime import datetime
 
-from requests.exceptions import ConnectionError
-
 from fa.miner import yahoo
+from fa.miner.exceptions import GetError
 
 
 class TestYahoo(unittest.TestCase):
@@ -13,15 +12,28 @@ class TestYahoo(unittest.TestCase):
             symbol = url[36:39]
             return symbol + ".csv"
 
-        with patch("fa.miner.yahoo.lenient_get", MagicMock(side_effect=fake_get)) as mock_lenient_get:
+        with patch("fa.miner.yahoo.strict_get", MagicMock(side_effect=fake_get)) as mock_strict_get:
             result = yahoo.get_historical_data(("C6L.SI", "ZZZ"), datetime(2004, 3, 1), datetime(2014, 3, 1))
 
-            mock_lenient_get.assert_has_calls([
+            mock_strict_get.assert_has_calls([
                 call("http://ichart.yahoo.com/table.csv?s=C6L.SI&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
                 call("http://ichart.yahoo.com/table.csv?s=ZZZ&a=2&b=1&c=2004&d=2&e=1&f=2014&g=d&ignore=.csv"),
             ])
 
         self.assertEqual(result, {"C6L.SI": "C6L.csv", "ZZZ": "ZZZ.csv"})
+
+    def test_get_historical_data_exception_handling(self):
+        def fake_get(url):
+            symbol = url[36:39]
+            if symbol == "ZZZ":
+                raise GetError()
+            else:
+                return symbol + ".csv"
+
+        with patch("fa.miner.yahoo.strict_get", MagicMock(side_effect=fake_get)):
+            result = yahoo.get_historical_data(("C6L.SI", "ZZZ"), datetime(2004, 3, 1), datetime(2014, 3, 1))
+
+        self.assertEqual(result, {"C6L.SI": "C6L.csv", "ZZZ": ''})
 
     def test_constuct_yql(self):
         yql = yahoo._construct_yql(("C6L.SI", "ZZZ"), "yahoo.finance.balancesheet", "annual")
@@ -77,8 +89,8 @@ class TestYahoo(unittest.TestCase):
                   }
                 }
 
-        with patch("fa.miner.yahoo._construct_yql", MagicMock(return_value="yql")) as mock_construct_yql, \
-             patch("fa.miner.yahoo.requests.get", MagicMock(return_value=MockResponse())) as mock_get:
+        with patch("fa.miner.yahoo._construct_yql", MagicMock(return_value="yql")), \
+             patch("fa.miner.yahoo.requests.get", MagicMock(return_value=MockResponse())):
 
             result = yahoo.get_financial_data(("C6L",), "annual", "balancesheet")
 
@@ -103,7 +115,7 @@ class TestYahoo(unittest.TestCase):
                 }
 
         with patch("fa.miner.yahoo._construct_yql", MagicMock(return_value="yql")) as mock_construct_yql, \
-             patch("fa.miner.yahoo.requests.get", MagicMock(return_value=MockResponse())) as mock_get:
+             patch("fa.miner.yahoo.requests.get", MagicMock(return_value=MockResponse())):
 
             result = yahoo.get_financial_data(("C6L", "ZZZ"), "quarterly", "keystats")
             mock_construct_yql.assert_called_once_with(("C6L", "ZZZ"), "yahoo.finance.keystats", None)
