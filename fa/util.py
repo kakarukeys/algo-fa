@@ -25,3 +25,7 @@ def partition(l, n):
     """ Yields successive n-sized chunks from list <l> """
     for i in range(0, len(l), n):
         yield l[i : i + n]
+
+def assert_equal(actual, expected, name="The variable"):
+    """ unless <actual> is equal to <expected>, raises AssertionError with a nice message """
+    assert actual == expected, "{0} is expected to be {1} but is actually {2}".format(name, expected, actual)

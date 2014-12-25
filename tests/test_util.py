@@ -123,10 +123,18 @@ class TestFAUtil(unittest.TestCase):
         name = fa_util.to_pythonic_name("Cash & ST Investments / Total Assets")
         self.assertEqual(name, "cash_st_investments_total_assets")
 
-    def test_chucks(self):
+    def test_partition(self):
         l = list(range(10))
         chunks = list(fa_util.partition(l, 4))
-        self.assertEqual(chunks, [[0, 1, 2 ,3], [4, 5, 6, 7], [8, 9]])
+        self.assertEqual(chunks, [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]])
+
+    def test_assert_equal(self):
+        fa_util.assert_equal(1 + 1, 2)
+
+        with self.assertRaises(AssertionError) as cm:
+            fa_util.assert_equal(1 + 1, 1)
+
+        self.assertEqual(str(cm.exception), "The variable is expected to be 1 but is actually 2")
 
 if __name__ == "__main__":
     unittest.main()

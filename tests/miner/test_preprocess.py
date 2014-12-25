@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 import numpy as np
 
 from fa.miner import preprocess
+from fa.miner.exceptions import PreprocessingError
 
 
 class TestPreprocess(unittest.TestCase):
@@ -21,10 +22,70 @@ class TestPreprocess(unittest.TestCase):
             (3, "SGD", 1000000000)
         )
         self.assertRaises(
-            ValueError,
+            PreprocessingError,
             preprocess._parse_top_remark,
             "abcdef"
         )
+
+    def test_validate(self):
+        obj = {
+            "data": [
+                ["periods", ["2009", "2010", "2011"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
+            ],
+            "symbol": "C6L.SI",
+            "timeframe": "annual",
+            "report_type": "balance-sheet",
+        }
+
+        try:
+            preprocess._validate(obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
+        except AssertionError:
+            self.fail("obj should be valid.")
+
+        # symbol, timeframe, report_type
+        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="J7X.SI", timeframe="annual", report_type="balance-sheet")
+
+        # currency
+        self.assertRaises(AssertionError, preprocess._validate, obj, "USD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
+
+    def test_validate_default_currency(self):
+        obj = {
+            "data": [
+                ["periods", ["2009", "2010", "2011"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
+            ],
+            "symbol": "MSOFT",
+            "timeframe": "annual",
+            "report_type": "balance-sheet",
+        }
+        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="MSOFT", timeframe="annual", report_type="balance-sheet")
+
+    def test_validate_first_column_name(self):
+        obj = {
+            "data": [
+                ["time", ["2009", "2010", "2011"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
+            ],
+            "symbol": "C6L.SI",
+            "timeframe": "annual",
+            "report_type": "balance-sheet",
+        }
+
+        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
+
+    def test_validate_column_length(self):
+        obj = {
+            "data": [
+                ["periods", ["2009", "2010", "2011"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400"]],
+            ],
+            "symbol": "C6L.SI",
+            "timeframe": "annual",
+            "report_type": "balance-sheet",
+        }
+
+        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
 
     def test_deduplicate_column_name(self):
         data = (
@@ -57,39 +118,28 @@ class TestPreprocess(unittest.TestCase):
         self.assertEqual(preprocess._parse_value("(3,456.78)", 10), -34567.8)
 
     def test_preprocess(self):
-        value_data = [
-            ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
-            ["Liabilities & Shareholders' Equity", ["25,169", "22,589", "22,501"]],
-        ]
         obj = {
-            "data": [["periods", ["2009", "2010", "2011"]]] + value_data,
-            "symbol": "C6L",
+            "data": [
+                ["periods", ["2009", "2010", "2011"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
+                ["Cash & Short Term Investments", ["3,504", "4,400", "4,488"]],
+                ["Liabilities & Shareholders' Equity", ["25,169", "22,589", "22,501"]],
+            ],
+            "symbol": "C6L.SI",
             "timeframe": "annual",
-            "top_remark": "top_remark",
+            "top_remark": "Fiscal year is April-March. All values SGD Thousands.",
             "report_type": "balance-sheet",
         }
 
-        with patch("fa.miner.preprocess.UNO_VALUE_UNIT_COLUMNS", {"Cash & Short Term Investments"}), \
-             patch("fa.miner.preprocess._parse_top_remark", MagicMock(return_value=(3, "SGD", 1000000))) \
-                as mock_parse_top_remark, \
-             patch("fa.miner.preprocess._deduplicate_column_name", MagicMock(side_effect=lambda a: a)) \
-                as mock_deduplicate_column_name, \
-             patch("fa.miner.preprocess._parse_value", MagicMock(side_effect=lambda a, b: a)) \
-                as mock_parse_value:
+        with patch("fa.miner.preprocess.UNO_VALUE_UNIT_COLUMNS", {"Cash & Short Term Investments"}):
+            preprocessed = list(preprocess.preprocess(obj, "C6L.SI", "annual", "balance-sheet"))
 
-            preprocessed = list(preprocess.preprocess(obj))
-
-            mock_parse_top_remark.assert_called_once_with("top_remark")
-            mock_deduplicate_column_name.assert_called_once_with(value_data)
-            # "Cash & Short Term Investments" is in UNO_VALUE_UNIT_COLUMNS
-            mock_parse_value.assert_any_call("4,504", 1)
-            mock_parse_value.assert_any_call("22,501", 1000000)
-
+        # first "Cash & Short Term Investments" is in UNO_VALUE_UNIT_COLUMNS
         self.assertEqual(preprocessed, [
-            # 04 because of mock_parse_top_remark's return value
             ("Date", [np.datetime64(s) for s in ("2009-04-01", "2010-04-01", "2011-04-01")]),
-            ("Cash & Short Term Investments", ["4,504", "5,400", "5,488"]),
-            ("Liabilities & Shareholders' Equity", ["25,169", "22,589", "22,501"])
+            ("Cash & Short Term Investments", [4504, 5400, 5488]),
+            ("Cash & Short Term Investments_2", [3504000, 4400000, 4488000]),
+            ("Liabilities & Shareholders' Equity", [25169000, 22589000, 22501000])
         ])
 
 if __name__ == "__main__":

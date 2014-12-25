@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
@@ -6,6 +7,12 @@ from collections import defaultdict
 
 import numpy as np
 
+from fa.miner.symbol_suffix import SYMBOL_SUFFIX_INFO, DEFAULT_CURRENCY
+from fa.miner.exceptions import PreprocessingError
+from fa.util import assert_equal
+
+
+logger = logging.getLogger(__name__)
 
 TOP_REMARK_RE = re.compile(
     r"Fiscal.+ [A-Za-z]+-(?P<fiscal_year_end_month>[A-Za-z]+)\..+values (?P<currency>[A-Z]+) (?P<value_unit>[A-Za-z]+)\.",
@@ -40,7 +47,31 @@ def _parse_top_remark(string):
 
         return datetime.strptime(end_month, "%B").month, currency.upper(), VALUE_UNITS[value_unit.lower()]
     else:
-        raise ValueError("Top remark cannot be parsed.")
+        raise PreprocessingError("Top remark cannot be parsed.")
+
+def _validate(obj, actual_currency, **expected_values):
+    """ Verifies whether <obj> is good for value parsing.
+        obj: dictionary of scraped raw data
+        actual_currency: currency used, derived from <obj>
+        keyword arguments:
+            symbol, timeframe, report_type: the parameters that were used to obtain <obj>
+    """
+    # symbol, timeframe, report_type
+    for key, value in expected_values.items():
+        assert_equal(obj[key], value, key)
+
+    # currency
+    suffix = expected_values["symbol"].partition('.')[2]
+    expected_currency = SYMBOL_SUFFIX_INFO[suffix][2] if suffix else DEFAULT_CURRENCY
+    assert_equal(actual_currency, expected_currency, "currency")
+
+    # first column's name
+    data = obj["data"]
+    assert_equal(data[0][0], "periods", "first column's name")
+
+    # column length
+    column_lengths = set(len(p[1]) for p in data)
+    assert len(column_lengths) == 1, "All columns are expected to have the same length, but they do not"
 
 def _calc_financial_data_date(fiscal_year_end_month, period):
     """ Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
@@ -79,20 +110,19 @@ def _parse_value(string, value_unit):
             else:
                 return np.int64(s) * value_unit
 
-def preprocess(obj):
+def preprocess(obj, symbol, timeframe, report_type):
     """ Preprocesses <obj>, parses the values, yields column name, list of parsed values
 
         obj: dictionary of scraped raw data.
+        symbol, timeframe, report_type: the parameters that were used to obtain <obj>.
     """
-    assert obj["timeframe"] == "annual"
+    logger.info("preprocessing raw data of {0} {1} {2}".format(symbol, timeframe, report_type))
 
     fiscal_year_end_month, currency, value_unit = _parse_top_remark(obj["top_remark"])
-    assert currency == "SGD"
-    calc_date = partial(_calc_financial_data_date, fiscal_year_end_month)
+    _validate(obj, currency, symbol=symbol, timeframe=timeframe, report_type=report_type)
 
-    first_row = obj["data"][0]
-    assert first_row[0] == "periods"
-    yield "Date", [calc_date(int(d)) for d in first_row[1]]
+    calc_date = partial(_calc_financial_data_date, fiscal_year_end_month)
+    yield "Date", [calc_date(int(d)) for d in obj["data"][0][1]]
 
     for column_name, values in _deduplicate_column_name(obj["data"][1:]):
         value_unit_to_use = 1 if column_name in UNO_VALUE_UNIT_COLUMNS else value_unit
