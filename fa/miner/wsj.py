@@ -12,8 +12,8 @@ from fa.util import transpose_items
 
 logger = logging.getLogger(__name__)
 
-WSJ_URL_TEMPLATE = "http://quotes.wsj.com/{country_mic}{symbol}/financials/{timeframe}/{report_type}"
-WSJ_URL_RE = re.compile(r"http://quotes.wsj.com/SG/(?P<symbol>\w+)/financials/(?P<timeframe>[a-z]+)/(?P<report_type>[a-z\-]+)")
+WSJ_URL_TEMPLATE = "http://quotes.wsj.com/{country_mic}{symbol_prefix}/financials/{timeframe}/{report_type}"
+WSJ_URL_RE = re.compile(r"http://quotes.wsj.com/SG/(?P<symbol_prefix>\w+)/financials/(?P<timeframe>[a-z]+)/(?P<report_type>[a-z\-]+)")
 FINANCIAL_REPORT_TYPES = ("balance-sheet", "cash-flow", "income-statement")
 
 def _get_report_url(symbol, timeframe, report_type):
@@ -30,7 +30,7 @@ def _get_report_url(symbol, timeframe, report_type):
     else:
         country_mic = ''
 
-    return WSJ_URL_TEMPLATE.format(country_mic=country_mic, symbol=prefix, timeframe=timeframe, report_type=report_type)
+    return WSJ_URL_TEMPLATE.format(country_mic=country_mic, symbol_prefix=prefix, timeframe=timeframe, report_type=report_type)
 
 def _scrape_row(tr):
     return tr.select("td.rowTitle")[0].text.strip(), [e.text.strip() for e in tr.select("td.valueCell")]
@@ -40,14 +40,14 @@ def _scrape_html(html):
     soup = BeautifulSoup(html)
 
     link = soup.select("link[rel=canonical]")[0]["href"]
-    symbol, timeframe, report_type = WSJ_URL_RE.match(link).groups()
-    logger.info("scraping html of {0} {1} {2}".format(symbol, timeframe, report_type))
+    symbol_prefix, timeframe, report_type = WSJ_URL_RE.match(link).groups()
+    logger.info("scraping html of {0} {1} {2}".format(symbol_prefix, timeframe, report_type))
 
     tables = soup.select("table.crDataTable")
     table_header = tables[0].select("tr.topRow > th")
 
     result = {
-        "symbol": symbol,
+        "symbol_prefix": symbol_prefix,
         "timeframe": timeframe,
         "report_type": report_type,
         "top_remark": table_header[0].text,

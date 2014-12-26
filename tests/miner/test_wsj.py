@@ -25,7 +25,7 @@ class TestWSJ(unittest.TestCase):
 
         result = wsj._scrape_html(html)
 
-        self.assertEqual(result["symbol"], "C6L")
+        self.assertEqual(result["symbol_prefix"], "C6L")
         self.assertEqual(result["timeframe"], "annual")
         self.assertEqual(result["report_type"], "balance-sheet")
         self.assertEqual(result["top_remark"], "Fiscal year is April-March. All values SGD Millions.")

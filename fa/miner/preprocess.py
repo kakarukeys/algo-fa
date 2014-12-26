@@ -1,11 +1,9 @@
 import logging
 import re
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from functools import partial
 from collections import defaultdict
-
-import numpy as np
 
 from fa.miner.symbol_suffix import SYMBOL_SUFFIX_INFO, DEFAULT_CURRENCY
 from fa.miner.exceptions import PreprocessingError
@@ -49,19 +47,20 @@ def _parse_top_remark(string):
     else:
         raise PreprocessingError("Top remark cannot be parsed.")
 
-def _validate(obj, actual_currency, **expected_values):
+def _validate(obj, actual_currency, symbol, timeframe, report_type):
     """ Verifies whether <obj> is good for value parsing.
         obj: dictionary of scraped raw data
         actual_currency: currency used, derived from <obj>
-        keyword arguments:
-            symbol, timeframe, report_type: the parameters that were used to obtain <obj>
+        symbol, timeframe, report_type: the parameters that were used to obtain <obj>
     """
+    prefix, _, suffix = symbol.partition('.')
+
     # symbol, timeframe, report_type
-    for key, value in expected_values.items():
-        assert_equal(obj[key], value, key)
+    assert_equal(obj["symbol_prefix"], prefix, "symbol prefix")
+    assert_equal(obj["timeframe"], timeframe, "timeframe")
+    assert_equal(obj["report_type"], report_type, "report_type")
 
     # currency
-    suffix = expected_values["symbol"].partition('.')[2]
     expected_currency = SYMBOL_SUFFIX_INFO[suffix][2] if suffix else DEFAULT_CURRENCY
     assert_equal(actual_currency, expected_currency, "currency")
 
@@ -74,12 +73,11 @@ def _validate(obj, actual_currency, **expected_values):
     assert len(column_lengths) == 1, "All columns are expected to have the same length, but they do not"
 
 def _calc_financial_data_date(fiscal_year_end_month, period):
-    """ Returns a numpy datetime64 object which is the date after the fiscal year of <period> just ended.
+    """ Returns a datetime object which is the date after the fiscal year of <period> just ended.
         fiscal_year_end_month: 1~12
         period: e.g. 2013
     """
-    d = date(period, fiscal_year_end_month, 1) + relativedelta(months=1)
-    return np.datetime64(d)
+    return datetime(period, fiscal_year_end_month, 1) + relativedelta(months=1)
 
 def _deduplicate_column_name(data):
     """ Yields (deduplicated column name, values) by iterating over <data>,
@@ -94,21 +92,21 @@ def _deduplicate_column_name(data):
         yield column_name + suffix, values
 
 def _parse_value(string, value_unit):
-    """ value string -> numpy-typed value
+    """ string -> value of a type
         value_unit: a number which the resultant value except percentage will be multiplifed by
     """
     if string == '-':
-        return np.nan
+        return None
     else:
         s = string.replace(',', '')
         if s.endswith('%'):
-            return np.float64(s.rstrip('%')) / 100
+            return float(s.rstrip('%')) / 100
         else:
             s = s.replace('(', '-').rstrip(')')
             if '.' in s:
-                return np.float64(s) * value_unit
+                return float(s) * value_unit
             else:
-                return np.int64(s) * value_unit
+                return int(s) * value_unit
 
 def preprocess(obj, symbol, timeframe, report_type):
     """ Preprocesses <obj>, parses the values, yields column name, list of parsed values
