@@ -7,15 +7,20 @@ from fa.database.models import db, Symbol, Price, export
 logger = logging.getLogger(__name__)
 
 def get_outdated_symbols(data_type, end_date):
-    """ Gets symbols which <data_type> data is never updated or was updated before <end_date>.
+    """ Gets symbols which <data_type> data is never updated or was updated before <end_date>, and their update dates.
         data_type: name of *_updated_at fields in Symbol model without _updated_at
         end_date: datetime object
     """
     field = getattr(Symbol, data_type + "_updated_at")
+    return Symbol.select(Symbol.symbol, field.alias("updated_at")).where((field < end_date) | (field == None))
 
-    return [s.symbol for s in Symbol.select(Symbol.symbol).where(
-        (field < end_date) | (field == None)
-    )]
+def get_financial_report_dates(report_type, symbol):
+    """ report_type: report type as defined in fa.miner.wsj.FINANCIAL_REPORT_TYPES
+        symbol: e.g. 'C6L.SI'
+    """
+    model_name = report_type.title().replace('-', '')
+    Model = next(cls for cls in export if cls.__name__ == model_name)
+    return [obj.date for obj in Model.select(Model.date)]
 
 def update_historical_prices(symbol, records, end_date):
     """ Updates historical prices of <symbol> with <records> and mark it as updated at <end_date>.

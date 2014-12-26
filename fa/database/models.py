@@ -60,16 +60,16 @@ class Price(EventModel):
     volume = pw.BigIntegerField()
     adj_close = pw.DoubleField()
 
-# the 3 financial data models are dynamically generated:
+# the 3 financial report models are dynamically generated:
 
 def _get_numerical_column_names(model_name):
-    """returns all numerical column names of a financial data model,
+    """returns all numerical column names of a financial report model,
        which are converted from verbose names stored in separate files imported.
     """
     verbose_names = globals()[model_name.lower() + "_numerical_columns"].verbose_names
     return [to_pythonic_name(name) for name in verbose_names]
 
-def _create_financial_data_model(model_name):
+def _create_financial_report_model(model_name):
     column_names = _get_numerical_column_names(model_name)
 
     return type(
@@ -79,7 +79,7 @@ def _create_financial_data_model(model_name):
     )
 
 for model_name in ("BalanceSheet", "CashFlow", "IncomeStatement"):
-    globals()[model_name] = _create_financial_data_model(model_name)
+    globals()[model_name] = _create_financial_report_model(model_name)
 
 #------------------------------------------------
 # lists all active models (for iteration purpose)

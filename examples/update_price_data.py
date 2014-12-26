@@ -16,7 +16,7 @@ initialize.init()
 logger = logging.getLogger(__name__)
 
 logger.info("Will update historical prices of all symbols not up to date on {0}.".format(end_date))
-all_symbols = get_outdated_symbols("price", end_date)
+all_symbols = [s.symbol for s in get_outdated_symbols("price", end_date)]
 
 # do the download in chunks of size 8 to prevent overloading servers
 for symbols in partition(all_symbols, 8):
@@ -31,4 +31,4 @@ for symbols in partition(all_symbols, 8):
                 logger.exception(e)
                 logger.error("csv of {0} is malformed.".format(symbol))
         else:
-            logger.warning("Could not find updated historical prices of {0}.".format(symbol))
+            logger.warning("Could not find updated historical prices of {0}. Skip.".format(symbol))
