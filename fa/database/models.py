@@ -63,8 +63,8 @@ class Price(EventModel):
 # the 3 financial report models are dynamically generated:
 
 def _get_numerical_column_names(model_name):
-    """returns all numerical column names of a financial report model,
-       which are converted from verbose names stored in separate files imported.
+    """ returns all numerical column names of a financial report model,
+        which are converted from verbose names stored in separate files imported.
     """
     verbose_names = globals()[model_name.lower() + "_numerical_columns"].verbose_names
     return [to_pythonic_name(name) for name in verbose_names]
@@ -85,4 +85,11 @@ for model_name in ("BalanceSheet", "CashFlow", "IncomeStatement"):
 # lists all active models (for iteration purpose)
 #------------------------------------------------
 
+# in the order of dependence, what comes later depends on what comes earlier
 export = [Symbol, Price, BalanceSheet, CashFlow, IncomeStatement]
+
+def get_Model(data_type):
+    """ returns the model class of <data_type>
+        data_type: name of *_updated_at fields in Symbol model without _updated_at """
+    class_name = data_type.title().replace('_', '')
+    return next(cls for cls in export if cls.__name__ == class_name)

@@ -61,6 +61,7 @@ class DBTestCase(unittest.TestCase):
         """ creates test database and all tables """
         try:
             models.db.init(cls.test_db_path)
+            models.db.execute_sql("PRAGMA foreign_keys = ON")
             models.db.create_tables(models.export)
         except:
             cls._cleanup()   # immediately performs cleanup if exception occurs

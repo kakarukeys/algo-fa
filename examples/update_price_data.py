@@ -4,7 +4,7 @@ import logging
 from fa.miner import yahoo
 from fa.piping import csv_string_to_records
 from fa.util import partition
-from fa.database.query import get_outdated_symbols, update_historical_prices
+from fa.database.query import get_outdated_symbols, update_fundamentals
 
 import initialize
 from settings import *
@@ -26,7 +26,7 @@ for symbols in partition(all_symbols, 8):
         if csv_string:
             try:
                 records = csv_string_to_records(symbol, csv_string, strict=True)
-                update_historical_prices(symbol, records, end_date)
+                update_fundamentals("price", symbol, records, end_date, delete_old=True)
             except csv.Error as e:
                 logger.exception(e)
                 logger.error("csv of {0} is malformed.".format(symbol))

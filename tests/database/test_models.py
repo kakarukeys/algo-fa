@@ -50,5 +50,8 @@ class TestModels(DBTestCase):
                 "two verbose column names in {0} are mapped to the same pythonic name!".format(model_name)
             )
 
+    def test_get_Model(self):
+        self.assertEqual(models.get_Model("balance_sheet"), models.BalanceSheet)
+
 if __name__ == "__main__":
     unittest.main()

@@ -12,6 +12,11 @@ def init():
     db.init(db_path)
     db.connect()
 
+    # http://stackoverflow.com/questions/9937713/does-sqlite3-not-support-foreign-key-constraints
+    # In SQLite 3.x, you have to make the following query every time you connect to an SQLite database
+    # Otherwise SQLite will ignore all foreign key constraints.
+    db.execute_sql("PRAGMA foreign_keys = ON")
+
     # set up logging
     logging.basicConfig(
         filename=log_file_path,
