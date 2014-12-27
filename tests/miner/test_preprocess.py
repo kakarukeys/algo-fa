@@ -75,6 +75,19 @@ class TestPreprocess(unittest.TestCase):
 
         self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
 
+    def test_validate_periods(self):
+        obj = {
+            "data": [
+                ["periods", ["2009", "2010", "2010"]],
+                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
+            ],
+            "symbol_prefix": "C6L",
+            "timeframe": "annual",
+            "report_type": "balance-sheet",
+        }
+
+        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
+
     def test_validate_column_length(self):
         obj = {
             "data": [

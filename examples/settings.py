@@ -5,10 +5,10 @@ import logging
 """ Settings for the project """
 
 # path to sqlite database
-db_path = "/home/kakarukeys/ownCloud/Fundamental Analysis project/algo-fa.db"
+db_path = "/home/kakarukeys/Documents/plan/projects/Fundamental Analysis project/algo-fa.db"
 
 # path to log file
-log_file_path = "/home/kakarukeys/ownCloud/Fundamental Analysis project/algo-fa.log"
+log_file_path = "/home/kakarukeys/Documents/plan/projects/Fundamental Analysis project/algo-fa.log"
 log_level = logging.INFO
 
 # there is data available between these two dates:

@@ -32,3 +32,5 @@ for symbols in partition(all_symbols, 8):
                 logger.error("csv of {0} is malformed.".format(symbol))
         else:
             logger.warning("Could not find updated historical prices of {0}. Skip.".format(symbol))
+
+logger.info("Finished updating historical prices.")

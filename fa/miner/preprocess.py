@@ -68,6 +68,10 @@ def _validate(obj, actual_currency, symbol, timeframe, report_type):
     data = obj["data"]
     assert_equal(data[0][0], "periods", "first column's name")
 
+    # uniqueness of periods
+    periods = data[0][1]
+    assert len(periods) == len(set(periods)), "Periods are expected to be unique, but they are not"
+
     # column length
     column_lengths = set(len(p[1]) for p in data)
     assert len(column_lengths) == 1, "All columns are expected to have the same length, but they do not"
