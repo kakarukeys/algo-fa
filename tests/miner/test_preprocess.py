@@ -47,21 +47,6 @@ class TestPreprocess(unittest.TestCase):
         self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="quarter", report_type="balance-sheet")
         self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="C6L.SI", timeframe="annual", report_type="cash-flow")
 
-        # currency
-        self.assertRaises(AssertionError, preprocess._validate, obj, "USD", symbol="C6L.SI", timeframe="annual", report_type="balance-sheet")
-
-    def test_validate_default_currency(self):
-        obj = {
-            "data": [
-                ["periods", ["2009", "2010", "2011"]],
-                ["Cash & Short Term Investments", ["4,504", "5,400", "5,488"]],
-            ],
-            "symbol_prefix": "MSOFT",
-            "timeframe": "annual",
-            "report_type": "balance-sheet",
-        }
-        self.assertRaises(AssertionError, preprocess._validate, obj, "SGD", symbol="MSOFT", timeframe="annual", report_type="balance-sheet")
-
     def test_validate_first_column_name(self):
         obj = {
             "data": [

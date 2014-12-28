@@ -24,7 +24,7 @@ for report_type in wsj.FINANCIAL_REPORT_TYPES:
         try:
             data = wsj.get_financial_data(symbol, "annual", report_type)
         except MinerException as e:
-            logger.warning("Could not find updated {0} data of {1}. Skip.".format(report_type, symbol))
+            logger.warning("Could not find updated {0} data of {1} due to {2}. Skip.".format(report_type, symbol, e.__class__.__name__))
             continue
         else:
             records = list(csv_rows_to_records(symbol, data))

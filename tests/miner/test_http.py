@@ -37,5 +37,22 @@ class TestHTTP(unittest.TestCase):
         with patch("fa.miner.http.requests.get", MagicMock(side_effect=ConnectionError)):
             self.assertRaises(GetError, http.strict_get, "http://ex")
 
+    def test_strict_get_test_for_error(self):
+        test_for_error = lambda r: "404" in r.url
+
+        class MockResponse(object):
+            def __init__(self, url):
+                """ HTTP response from accessing the URL """
+                self.status_code = 200
+                self.text = "bar"
+                self.reason = ''
+                self.url = url
+
+        with patch("fa.miner.http.requests.get", MagicMock(side_effect=MockResponse)):
+            data = http.strict_get("http://foo", test_for_error)
+            self.assertRaises(GetError, http.strict_get, "http://foo/404.html", test_for_error)
+
+        self.assertEqual(data, "bar")
+
 if __name__ == "__main__":
     unittest.main()

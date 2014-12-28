@@ -62,7 +62,8 @@ def _validate(obj, actual_currency, symbol, timeframe, report_type):
 
     # currency
     expected_currency = SYMBOL_SUFFIX_INFO[suffix][2] if suffix else DEFAULT_CURRENCY
-    assert_equal(actual_currency, expected_currency, "currency")
+    if actual_currency != expected_currency:    # currency is not so important in fundamental analysis
+        logger.warning("currency is expected to be {0} but is actually {1}".format(expected_currency, actual_currency))
 
     # first column's name
     data = obj["data"]

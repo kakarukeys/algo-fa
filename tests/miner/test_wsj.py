@@ -18,6 +18,14 @@ class TestWSJ(unittest.TestCase):
     def test_get_report_url_suffix_not_found(self):
         self.assertRaises(SymbolError, wsj._get_report_url, "MSFT.ABCXYZ", "annual", "balance-sheet")
 
+    def test_test_for_not_found(self):
+        class MockResponse(object):
+            def __init__(self, url):
+                self.url = url
+
+        self.assertFalse(wsj._test_for_not_found(MockResponse("http://foo")))
+        self.assertTrue(wsj._test_for_not_found(MockResponse(wsj.WSJ_404_URL)))
+
     def test_scrape_html(self):
         fixture_data_filename = os.path.join(os.path.dirname(__file__), "fixture_data", "C6L.SI_annual_balance-sheet.html")
         with open(fixture_data_filename) as f:
@@ -43,7 +51,7 @@ class TestWSJ(unittest.TestCase):
             result = wsj.get_financial_data("C6L.SI", "annual", "balance-sheet")
 
             mock_get_report_url.assert_called_once_with("C6L.SI", "annual", "balance-sheet")
-            mock_strict_get.assert_called_once_with("http://foo")
+            mock_strict_get.assert_called_once_with("http://foo", wsj._test_for_not_found)
             mock_scrape_html.assert_called_once_with("html")
             mock_preprocess.assert_called_once_with("raw_data", "C6L.SI", "annual", "balance-sheet")
             mock_transpose_items.assert_called_once_with("items")

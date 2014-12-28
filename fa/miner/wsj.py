@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 WSJ_URL_TEMPLATE = "http://quotes.wsj.com/{country_mic}{symbol_prefix}/financials/{timeframe}/{report_type}"
 WSJ_URL_RE = re.compile(r"http://quotes.wsj.com/SG/(?P<symbol_prefix>\w+)/financials/(?P<timeframe>[a-z]+)/(?P<report_type>[a-z\-]+)")
+WSJ_404_URL = "http://quotes.wsj.com/NOTFND.HTML"
 FINANCIAL_REPORT_TYPES = ("balance-sheet", "cash-flow", "income-statement")
 
 def _get_report_url(symbol, timeframe, report_type):
@@ -31,6 +32,10 @@ def _get_report_url(symbol, timeframe, report_type):
         country_mic = ''
 
     return WSJ_URL_TEMPLATE.format(country_mic=country_mic, symbol_prefix=prefix, timeframe=timeframe, report_type=report_type)
+
+def _test_for_not_found(response):
+    """ heuristic to determine if <response> is 404 not found (status code is still 200) """
+    return response.url == WSJ_404_URL
 
 def _scrape_row(tr):
     return tr.select("td.rowTitle")[0].text.strip(), [e.text.strip() for e in tr.select("td.valueCell")]
@@ -69,7 +74,7 @@ def get_financial_data(symbol, timeframe, report_type):
     logger.info("getting {0} {1} data of {2}".format(timeframe, report_type, symbol))
 
     url = _get_report_url(symbol, timeframe, report_type)
-    html = strict_get(url)
+    html = strict_get(url, _test_for_not_found)
 
     try:
         raw_data = _scrape_html(html)
