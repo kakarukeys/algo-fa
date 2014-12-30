@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import mock_open, patch
-import os
 
 from pandas import Series, DataFrame
 from pandas.util.testing import assert_series_equal, assert_frame_equal, assert_panel_equal
@@ -48,13 +47,12 @@ class DBTestCase(unittest.TestCase):
     """ For testing code involving database io operations
         Note: this class interacts with models module
     """
-    test_db_path = "test-algo-fa.db"
+    test_db_path = ":memory:"
 
     @classmethod
     def _cleanup(cls):
-        """ closes connection and deletes test database """
+        """ closes connection """
         models.db.close()
-        os.remove(cls.test_db_path)
 
     @classmethod
     def setUpClass(cls):

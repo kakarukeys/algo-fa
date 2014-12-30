@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from io import StringIO
-import os
 
 import pandas as pd
 import peewee as pw
@@ -91,15 +90,11 @@ class TestDBTestCase(unittest.TestCase):
         except pw.OperationalError:
             self.fail("table not created!")
 
-        # assert this after a query: creation of database is lazy, deferred till actual query happens
-        self.assertTrue(os.path.exists(test_util.DBTestCase.test_db_path))
-
         with patch("fa.database.models.db", mock_test_db), \
              patch("fa.database.models.export", [MockModel]):
             test_util.DBTestCase.tearDownClass()
 
         self.assertTrue(mock_test_db.is_closed())
-        self.assertFalse(os.path.exists(test_util.DBTestCase.test_db_path))
 
     def test_setUpClass_cleanup(self):
         with patch("fa.database.models.db.init", MagicMock(side_effect=Exception)), \
