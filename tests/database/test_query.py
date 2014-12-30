@@ -29,6 +29,23 @@ class TestQuery(DBTestCase):
             {"symbol": "J7X.SI", "updated_at": datetime(2012, 12, 21)},
         ])
 
+    def test_get_outdated_symbols_category(self):
+        symbols = [
+            {"symbol": "C6L.SI", "category": "market_index"},
+            {"symbol": "J7X.SI", "category": "market_index"},
+            {"symbol": "ABC.SI", "category": "stock"},
+        ]
+
+        with db.transaction():
+            Symbol.insert_many(symbols).execute()
+
+        result = list(query.get_outdated_symbols("price", datetime(2013, 1, 1), "market_index").dicts())
+
+        self.assertEqual(result, [
+            {"symbol": "C6L.SI", "updated_at": None},
+            {"symbol": "J7X.SI", "updated_at": None},
+        ])
+
     def test_get_record_dates(self):
         symbols = [
             {"symbol": "C6L.SI", "price_updated_at": None},

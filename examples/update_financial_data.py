@@ -18,7 +18,7 @@ for report_type in wsj.FINANCIAL_REPORT_TYPES:
     logger.info("Will update {0} data of all symbols not up to date on {1}.".format(report_type, end_date))
 
     data_type = report_type.replace('-', '_')
-    symbol_update_dates = {s.symbol: s.updated_at for s in get_outdated_symbols(data_type, end_date)}
+    symbol_update_dates = {s.symbol: s.updated_at for s in get_outdated_symbols(data_type, end_date, "stock")}
 
     for symbol in symbol_update_dates:
         try:

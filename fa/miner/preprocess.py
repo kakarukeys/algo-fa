@@ -4,6 +4,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from functools import partial
 from collections import defaultdict
+import unicodedata
 
 from fa.miner.symbol_suffix import SYMBOL_SUFFIX_INFO, DEFAULT_CURRENCY
 from fa.miner.exceptions import PreprocessingError
@@ -108,6 +109,10 @@ def _parse_value(string, value_unit):
             return float(s.rstrip('%')) / 100
         else:
             s = s.replace('(', '-').rstrip(')')
+
+            # remove currency symbol
+            s = ''.join(c for c in s[:2] if unicodedata.category(c) != "Sc") + s[2:]
+
             if '.' in s:
                 return float(s) * value_unit
             else:

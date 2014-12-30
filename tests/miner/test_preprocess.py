@@ -106,14 +106,16 @@ class TestPreprocess(unittest.TestCase):
         ])
 
     def test_parse_value(self):
-        parsed = preprocess._parse_value("3,456", value_unit=10)
+        self.assertIs(preprocess._parse_value('-', value_unit=10), None)
 
-        self.assertIs(preprocess._parse_value('-', 10), None)
         self.assertEqual(preprocess._parse_value("25%", 10), 0.25)
-        self.assertEqual(parsed, 34560)
+        self.assertEqual(preprocess._parse_value("3,456", 10), 34560)
         self.assertEqual(preprocess._parse_value("(3,456)", 10), -34560)
         self.assertEqual(preprocess._parse_value("3,456.78", 10), 34567.8)
         self.assertEqual(preprocess._parse_value("(3,456.78)", 10), -34567.8)
+
+        self.assertEqual(preprocess._parse_value("$3,456", 10), 34560)
+        self.assertEqual(preprocess._parse_value("(¥3,456)", 10), -34560)
 
     def test_preprocess(self):
         obj = {
