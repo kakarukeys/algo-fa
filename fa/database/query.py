@@ -26,6 +26,19 @@ def get_record_dates(data_type, symbol):
     Model = get_Model(data_type)
     return Model.select(Model.date).where(Model.symbol_obj == symbol)
 
+def get_fundamentals(data_type, symbol, field_names):
+    """ Returns in tuple form, fundamentals of <symbol>, selecting only <field_names>.
+
+        data_type: name of *_updated_at fields in Symbol model without _updated_at
+        symbol: e.g. 'C6L.SI'
+        field_names: a sequence of field names (string) as defined in the respective model.
+    """
+    Model = get_Model(data_type)
+    return Model.select(*[getattr(Model, c) for c in field_names]) \
+        .where(Model.symbol_obj == symbol) \
+        .order_by(Model.date) \
+        .tuples()
+
 def update_fundamentals(data_type, symbol, records, end_date, delete_old=False):
     """ Updates fundamentals of <symbol> with <records> and mark it as updated at <end_date>.
 

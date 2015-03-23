@@ -65,6 +65,31 @@ class TestQuery(DBTestCase):
         dates = [r.date for r in query.get_record_dates("balance_sheet", "C6L.SI")]
         self.assertEqual(dates, [datetime(1994, 4, 1), datetime(1995, 4, 1)])
 
+    def test_get_fundamentals(self):
+        symbols = [
+            {"symbol": "C6L.SI"},
+            {"symbol": "ABC.SI"},
+        ]
+
+        prices = [
+            {"symbol_obj": "C6L.SI", "date": datetime(2012, 12, 21), "open": 0, "close": 0, "high": 0, "low": 0, "volume": 7850, "adj_close": 99.9},
+            {"symbol_obj": "ABC.SI", "date": datetime(2012, 12, 21), "open": 0, "close": 0, "high": 0, "low": 0, "volume": 4430, "adj_close": 54.4},
+            {"symbol_obj": "C6L.SI", "date": datetime(2012, 12, 20), "open": 0, "close": 0, "high": 0, "low": 0, "volume": 6860, "adj_close": 100.4},
+            {"symbol_obj": "C6L.SI", "date": datetime(2012, 12, 22), "open": 0, "close": 0, "high": 0, "low": 0, "volume": 3870, "adj_close": 32.6},
+        ]
+
+        with db.transaction():
+            Symbol.insert_many(symbols).execute()
+            Price.insert_many(prices).execute()
+
+        result = list(query.get_fundamentals("price", "C6L.SI", ("date", "volume", "adj_close")).dicts())
+
+        self.assertEqual(result, [
+            (datetime(2012, 12, 20), 6860, 100.4),
+            (datetime(2012, 12, 21), 7850, 99.9),
+            (datetime(2012, 12, 22), 3870, 32.6),
+        ])
+
     def test_update_fundamentals(self):
         symbols = [
             {"symbol": "C6L.SI"},

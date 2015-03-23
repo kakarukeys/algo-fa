@@ -1,6 +1,6 @@
 import peewee as pw
 
-from fa.database import balancesheet_numerical_columns, cashflow_numerical_columns, incomestatement_numerical_columns
+from fa.database import balancesheet_numerical_columns, cashflow_numerical_columns, incomestatement_numerical_columns, price_numerical_columns
 from fa.util import  to_pythonic_name
 
 
@@ -20,7 +20,7 @@ class BaseModel(pw.Model):
         database = db
 
 #------------------------------
-# models for fundamental analytis
+# models for fundamental analysis
 #------------------------------
 
 class Symbol(BaseModel):
@@ -62,20 +62,19 @@ class Price(EventModel):
 
 # the 3 financial report models are dynamically generated:
 
-def _get_numerical_column_names(model_name):
-    """ returns all numerical column names of a financial report model,
-        which are converted from verbose names stored in separate files imported.
+def get_numerical_column_names(model_name):
+    """ returns all numerical column names of price model or a financial report model,
+        which are verbose names stored in separate files imported.
     """
-    verbose_names = globals()[model_name.lower() + "_numerical_columns"].verbose_names
-    return [to_pythonic_name(name) for name in verbose_names]
+    return globals()[model_name.lower() + "_numerical_columns"].verbose_names
 
 def _create_financial_report_model(model_name):
-    column_names = _get_numerical_column_names(model_name)
+    field_names = [to_pythonic_name(name) for name in get_numerical_column_names(model_name)]
 
     return type(
         model_name,
         (EventModel,),
-        {name: pw.DoubleField(null=True) for name in column_names}
+        {name: pw.DoubleField(null=True) for name in field_names}
     )
 
 for model_name in ("BalanceSheet", "CashFlow", "IncomeStatement"):

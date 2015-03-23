@@ -35,16 +35,13 @@ class TestModels(DBTestCase):
             self.fail("models not declared properly!")
 
     def test_get_numerical_column_names(self):
-        with patch("fa.database.balancesheet_numerical_columns.verbose_names", ["abc", "def"]), \
-             patch("fa.database.models.to_pythonic_name", MagicMock(side_effect=lambda x: x + '_')) as mock_to_pythonic_name:
-            names = models._get_numerical_column_names("BalanceSheet")
-            mock_to_pythonic_name.assert_has_calls([call("abc"), call("def")])
-
-        self.assertEqual(names, ["abc_", "def_"])
+        with patch("fa.database.balancesheet_numerical_columns.verbose_names", ["abc", "def"]):
+            names = models.get_numerical_column_names("BalanceSheet")
+        self.assertEqual(names, ["abc", "def"])
 
     def test_numerical_column_names_uniqueness(self):
         for model_name in ("BalanceSheet", "CashFlow", "IncomeStatement"):
-            names = models._get_numerical_column_names(model_name)
+            names = models.get_numerical_column_names(model_name)
             self.assertTrue(
                 len(names) == len(set(names)),
                 "two verbose column names in {0} are mapped to the same pythonic name!".format(model_name)
