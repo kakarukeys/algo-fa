@@ -1,6 +1,6 @@
 import numpy as np
 from fa.calculator import translate_index
-from fa.archive.load import load_historical_data, load_financial_data_all
+from fa.analysis.io import load_fundamental_data
 
 
 PROFIT_MARGIN_KINDS = ("gross", "operating", "pretax", "net")
@@ -43,19 +43,18 @@ class Metric(object):
             self.cash_flow_lagged = translate_index(cash_flow, self.financial_report_preparation_lag)
 
     @classmethod
-    def from_archive(cls, archive_directory, symbol, *args, **kwargs):
-        """ Returns an object that is capable of calculating various metrics of the stock.
-            archive_directory: will load data from this directory to construct the object
-            symbol: e.g. "C6L"
+    def from_archive(cls, symbol, *args, **kwargs):
+        """ Returns an object that is capable of calculating various metrics of the stock,
+            with data loaded from archive.
+
+            symbol: e.g. "C6L.SI"
             Any extra arguments will be passed on to the constructor.
         """
-        historical_data = load_historical_data(archive_directory, symbol)
-        financial_data = load_financial_data_all(archive_directory, symbol)
         kwargs.update({
-            "historical": historical_data,
-            "balance_sheet": financial_data["balance-sheet"],
-            "income_statement": financial_data["income-statement"],
-            "cash_flow": financial_data["cash-flow"],
+            "historical": load_fundamental_data("price", symbol),
+            "balance_sheet": load_fundamental_data("balance_sheet", symbol),
+            "income_statement": load_fundamental_data("income_statement", symbol),
+            "cash_flow": load_fundamental_data("cash_flow", symbol),
         })
 
         return cls(*args, **kwargs)

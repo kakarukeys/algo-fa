@@ -20,6 +20,6 @@ def load_fundamental_data(data_type, symbol, columns=None):
     columns = ["Date"] + list(columns)
 
     field_names = [to_pythonic_name(c) for c in columns]
-    records = get_fundamentals(data_type, symbol, field_names)
+    records = list(get_fundamentals(data_type, symbol, field_names))
 
     return pd.DataFrame.from_records(records, columns=columns, index="Date")

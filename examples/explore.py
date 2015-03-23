@@ -1,4 +1,5 @@
 from functools import reduce
+from collections import OrderedDict
 
 import pandas as pd
 import numpy as np
@@ -7,11 +8,27 @@ import matplotlib.pyplot as plt
 from fa.analysis.finance import Metric, PROFIT_MARGIN_KINDS
 from fa.analysis.measurement import get_first_commonly_available_year
 
+import initialize
 from plot_util import print_point_labels
-from settings import archive_directory, symbols, end_date
+from settings import end_date
 
 
-metrics = [Metric.from_archive(archive_directory, s) for s in symbols]
+""" Explore value investing fundamental analysis methods """
+
+initialize.init()
+
+symbols = OrderedDict([
+    ("C6L.SI", "Singapore Airlines"),
+    ("J7X.SI", "Tiger Airways"),
+    ("S53.SI", "SMRT"),
+    ("C52.SI", "ComfortDelGro"),
+    ("N03.SI", "Neptune Orient Lines"),
+    ("Z74.SI", "Singtel"),
+    ("CC3.SI", "Starhub"),
+    ("B2F.SI", "M1"),
+])
+
+metrics = [Metric.from_archive(s) for s in symbols]
 pe_ratios_list = [m.calc_pe_ratio() for m in metrics]
 
 # figure 1

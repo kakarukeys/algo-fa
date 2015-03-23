@@ -1,24 +1,28 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
 import pandas as pd
 import numpy as np
 
 from fa.analysis.finance import Metric, DatedMetric
-from fa.archive.load import FINANCIAL_REPORT_TYPES
 from tests.util import PandasTestCase
 
 
 class TestMetric(PandasTestCase):
     def test_from_archive(self):
-        with patch("fa.analysis.finance.load_historical_data", MagicMock(return_value='h')) as mock_load_historical_data, \
-             patch("fa.analysis.finance.load_financial_data_all", MagicMock(return_value={rt: rt[0] for rt in FINANCIAL_REPORT_TYPES})) as mock_load_financial_data_all, \
+        fake_load = lambda data_type, symbol: data_type[0]
+
+        with patch("fa.analysis.finance.load_fundamental_data", MagicMock(side_effect=fake_load)) as mock_load_fundamental_data, \
              patch("fa.analysis.finance.Metric.__init__", MagicMock(return_value=None)) as mock_constructor:
 
-            obj = Metric.from_archive("/path/to/archive", "C6L", 1, b=2)
-            mock_load_historical_data.assert_called_once_with("/path/to/archive", "C6L")
-            mock_load_financial_data_all.assert_called_once_with("/path/to/archive", "C6L")
-            mock_constructor.assert_called_once_with(1, b=2, historical='h', balance_sheet='b', cash_flow='c', income_statement='i')
+            obj = Metric.from_archive("C6L.SI", 1, b=2)
+            mock_load_fundamental_data.assert_has_calls([
+                call("price", "C6L.SI"),
+                call("balance_sheet", "C6L.SI"),
+                call("income_statement", "C6L.SI"),
+                call("cash_flow", "C6L.SI"),
+            ])
+            mock_constructor.assert_called_once_with(1, b=2, historical='p', balance_sheet='b', cash_flow='c', income_statement='i')
 
         self.assertIsInstance(obj, Metric)
 
