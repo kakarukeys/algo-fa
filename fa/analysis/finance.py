@@ -107,6 +107,10 @@ class Metric(object):
 
         return profit / revenue
 
+    def calc_debt_to_asset_ratio(self):
+        """ Returns the Debt/Asset Ratio series of the stock."""
+        return self.balance_sheet_lagged["Total Liabilities / Total Assets"]
+
 class DatedMetric(Metric):
     def __init__(self, date, **kwargs):
         """ Returns an object that is capable of calculating various metrics of the stock at <date>.
@@ -147,3 +151,7 @@ class DatedMetric(Metric):
         revenue = self.income_statement_lagged.at[self.date, "Sales/Revenue"]
 
         return profit / revenue
+
+    def calc_debt_to_asset_ratio(self):
+        """ Returns the Debt/Asset Ratio of the stock at the internal date."""
+        return self.balance_sheet_lagged.at[self.date, "Total Liabilities / Total Assets"]

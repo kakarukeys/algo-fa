@@ -106,6 +106,23 @@ class TestMetric(PandasTestCase):
         expected_index = pd.to_datetime(["2012-01-02", "2012-01-03", "2012-01-04"])
         self.assertFrameEqual(gross_profit_margin, pd.Series([20, 25, 30], index=expected_index), check_dtype=False)
 
+    def test_calc_debt_to_asset_ratio(self):
+        balance_sheet_data = {
+            "Total Liabilities / Total Assets": [0.69, 0.68, 0.67]
+        }
+        balance_sheet_index = pd.to_datetime(["2012-01-01", "2012-01-02", "2012-01-03"])
+
+        metric = Metric(
+            balance_sheet=pd.DataFrame(balance_sheet_data, index=balance_sheet_index),
+            financial_report_preparation_lag=np.timedelta64(1, 'D')
+        )
+
+        debt_ratio = metric.calc_debt_to_asset_ratio()
+
+        # because of 1 day financial_report_preparation_lag
+        expected_index = pd.to_datetime(["2012-01-02", "2012-01-03", "2012-01-04"])
+        self.assertFrameEqual(debt_ratio, pd.Series([0.69, 0.68, 0.67], index=expected_index))
+
 class TestDatedMetric(unittest.TestCase):
     def test_calc_return(self):
         date = pd.Timestamp("2012-01-02")
@@ -167,6 +184,23 @@ class TestDatedMetric(unittest.TestCase):
 
         # because of 1 day financial_report_preparation_lag
         self.assertEqual(gross_profit_margin, 25)
+
+    def test_calc_debt_to_asset_ratio(self):
+        balance_sheet_data = {
+            "Total Liabilities / Total Assets": [0.69, 0.68, 0.67]
+        }
+        balance_sheet_index = pd.to_datetime(["2012-01-01", "2012-01-02", "2012-01-03"])
+
+        dated_metric = DatedMetric(
+            pd.Timestamp("2012-01-03"),
+            balance_sheet=pd.DataFrame(balance_sheet_data, index=balance_sheet_index),
+            financial_report_preparation_lag=np.timedelta64(1, 'D')
+        )
+
+        debt_ratio = dated_metric.calc_debt_to_asset_ratio()
+
+        # because of 1 day financial_report_preparation_lag
+        self.assertEqual(debt_ratio, 0.68)
 
 if __name__ == "__main__":
     unittest.main()

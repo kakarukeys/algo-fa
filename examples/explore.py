@@ -60,11 +60,14 @@ profit_margins = {
     for label, kind in zip(profit_margin_labels, PROFIT_MARGIN_KINDS)
 }
 
+debt_ratios = [dm.calc_debt_to_asset_ratio() * 100 for dm in dated_metrics]
+
 graph_data = {
     "Symbol": list(symbols.keys()),
     "Name": list(symbols.values()),
     "P/E Ratio": pe_ratios,
     "Annual Return (%)": percentage_annual_returns,
+    "Debt Ratio (%)": debt_ratios,
 }
 graph_data.update(profit_margins)
 
@@ -79,14 +82,19 @@ xbound = graph.get_xbound()
 graph.hlines(0, *xbound, color="red")
 
 # figure 3
-title = "Gross Profit Margin of stocks in {0} over P/E Ratio\n".format(buy_year)
-graph = df.plot(x="P/E Ratio", y="Gross Profit Margin (%)", kind="scatter", title=title, figsize=(12, 10))
-print_point_labels(df, graph, x="P/E Ratio", y="Gross Profit Margin (%)", label="Name")
+title = "Operating Profit Margin of stocks in {0} over P/E Ratio\n".format(buy_year)
+graph = df.plot(x="P/E Ratio", y="Operating Profit Margin (%)", kind="scatter", title=title, figsize=(12, 10))
+print_point_labels(df, graph, x="P/E Ratio", y="Operating Profit Margin (%)", label="Name")
 
 # figure 4
 new_df = df[profit_margin_labels + ["Name"]].set_index("Name").transpose()
 title = "Profit Margins of stocks in {0}".format(buy_year)
 new_df.plot(subplots=True, kind="bar", rot=20, title=title, figsize=(8, 13))
+
+# figure 5
+title = "Debt Ratio of stocks in {0} over P/E Ratio\n".format(buy_year)
+graph = df.plot(x="P/E Ratio", y="Debt Ratio (%)", kind="scatter", title=title, figsize=(12, 10))
+print_point_labels(df, graph, x="P/E Ratio", y="Debt Ratio (%)", label="Name")
 
 # show all figures
 plt.show()
