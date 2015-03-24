@@ -9,15 +9,6 @@ def transpose_items(items):
     columns = ([column_name] + values for column_name, values in items)
     return zip(*columns)
 
-def transpose_csv(csv_file, output, delimiter):
-    """ Transposes the content of <csv_file> and writes to <output>
-        csv_file, output: file-like objects
-        delimiter: the symbol that separates the column values
-    """
-    reader = csv.reader(csv_file, delimiter=delimiter)
-    writer = csv.writer(output, delimiter=delimiter)
-    writer.writerows(zip(*reader))
-
 def to_pythonic_name(verbose_name):
     return re.sub(r"[^\w]+", '_', verbose_name).lower()
 

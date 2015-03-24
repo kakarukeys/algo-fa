@@ -109,11 +109,6 @@ class TestFAUtil(unittest.TestCase):
         transposed = fa_util.transpose_items((("foo", [1, 2, 3]), ("bar", [4, 5, 6])))
         self.assertEqual(list(transposed), [("foo", "bar"), (1, 4), (2, 5), (3, 6)])
 
-    def test_transpose_csv(self):
-        output = StringIO()
-        fa_util.transpose_csv(StringIO("foo|bar\n1|4.0\n2|5\n3|6\n"), output, '|')
-        self.assertEqual(output.getvalue(), "foo|1|2|3\r\nbar|4.0|5|6\r\n")
-
     def test_to_pythonic_name(self):
         name = fa_util.to_pythonic_name("Cash & ST Investments / Total Assets")
         self.assertEqual(name, "cash_st_investments_total_assets")
